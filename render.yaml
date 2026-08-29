@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: journeyos
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: node server.js
+    envVars:
+      - key: NODE_VERSION
+        value: 22.5.0
+      - key: PORT
+        value: 10000
+      - key: JWT_SECRET
+        generateValue: true
+    disk:
+      name: journeyos-data
+      mountPath: /data
+      sizeGB: 1
