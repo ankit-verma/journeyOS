@@ -4,8 +4,12 @@ const { DatabaseSync } = require('node:sqlite');
 const bcrypt = require('bcryptjs');
 const path = require('path');
 
-// On Render, use the persistent disk at /data; otherwise use the project dir
-const DB_DIR = process.env.RENDER ? '/data' : __dirname;
+// Use /data if it exists and is writable (Render persistent disk), else project dir
+const fs = require('fs');
+let DB_DIR = __dirname;
+if (process.env.RENDER) {
+  try { fs.accessSync('/data', fs.constants.W_OK); DB_DIR = '/data'; } catch { DB_DIR = '/tmp'; }
+}
 const db = new DatabaseSync(path.join(DB_DIR, 'journeyos.db'));
 
 // ── schema ──────────────────────────────────────────────────────────────────
