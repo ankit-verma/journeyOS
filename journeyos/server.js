@@ -464,30 +464,40 @@ After the JSON, continue with a friendly message inviting them to purchase/book.
     aiReply = generateFallbackReply(messages, systemPrompt, destinations, trips);
   }
 
-  // Save session
+  // ── Token estimation (1 token ≈ 4 chars — standard approximation) ───────────
+  const promptText  = systemPrompt + messages.map(m => m.content).join(' ');
+  const promptTok   = Math.ceil(promptText.length / 4);
+  const responseTok = Math.ceil((aiReply || '').length / 4);
+  const totalTok    = promptTok + responseTok;
+
+  // Save session + log tokens
   if (session_id) {
-    const existing = db.prepare('SELECT id FROM ai_chat_sessions WHERE session_id=?').get(session_id);
-    const allMsgs = JSON.stringify([...messages, { role: 'assistant', content: aiReply }]);
+    const existing = db.prepare('SELECT id, tokens_total FROM ai_chat_sessions WHERE session_id=?').get(session_id);
+    const allMsgs  = JSON.stringify([...messages, { role: 'assistant', content: aiReply }]);
     if (existing) {
-      db.prepare("UPDATE ai_chat_sessions SET messages=?, updated_at=datetime('now') WHERE session_id=?").run(allMsgs, session_id);
+      db.prepare("UPDATE ai_chat_sessions SET messages=?, tokens_total=tokens_total+?, updated_at=datetime('now') WHERE session_id=?")
+        .run(allMsgs, totalTok, session_id);
     } else {
-      db.prepare('INSERT INTO ai_chat_sessions (session_id, messages) VALUES (?,?)').run(session_id, allMsgs);
+      db.prepare('INSERT INTO ai_chat_sessions (session_id, messages, tokens_total) VALUES (?,?,?)').run(session_id, allMsgs, totalTok);
     }
+    db.prepare('INSERT INTO ai_token_log (session_id, provider, prompt_tokens, response_tokens, total_tokens) VALUES (?,?,?,?,?)')
+      .run(session_id, provider, promptTok, responseTok, totalTok);
   }
 
-  ok(res, { reply: aiReply });
+  ok(res, { reply: aiReply, tokens: { prompt: promptTok, response: responseTok, total: totalTok } });
 }
 
 // ── Built-in AI fallback (rule-based travel planner) ─────────────────────────
 function generateFallbackReply(messages, _systemPrompt, destinations, trips) {
   const last = (messages[messages.length - 1]?.content || '').toLowerCase();
-  const allMsgs = messages.map(m => m.content.toLowerCase()).join(' ');
+  // IMPORTANT: allMsgs must only be USER messages — bot replies contain duration/destination
+  // suggestions (e.g. "3–5 days", "7 days") that corrupt detection if included.
+  const userMsgs = messages.filter(m => m.role === 'user');
+  const allMsgs  = userMsgs.map(m => m.content.toLowerCase()).join(' ');
 
   // ── Destination detection ─────────────────────────────────────────────────
-  // Priority: most-recent user message first, then full history.
-  // This prevents an old destination (e.g. Kyoto) overriding a new one (Paris).
-  const userMsgs = messages.filter(m => m.role === 'user');
-  const recentUserTexts = userMsgs.slice(-2).map(m => m.content.toLowerCase()); // last 2 user turns
+  // Priority: most-recent user message first, then full user history.
+  const recentUserTexts = userMsgs.slice(-2).map(m => m.content.toLowerCase());
   const recentText = recentUserTexts.join(' ');
 
   function findSeeded(text) {
@@ -637,13 +647,16 @@ What works best for you?`;
   }
 
   if (readyToPlan) {
-    // Duration extraction — also handle "X nights"
-    const durMatch = allMsgs.match(/(\d+)\s*(day|week|night)/i);
+    // Duration extraction — use LAST match across user messages so the most recent answer wins.
+    // e.g. bot suggested "3-5 days / 7 days / 3 weeks" — we want the user's reply "3 weeks", not
+    // the first "3" from the bot's suggestion list (which is now excluded from allMsgs anyway).
+    const durMatches = [...allMsgs.matchAll(/(\d+)\s*(day|week|night)/gi)];
     let durDays = 7;
-    if (durMatch) {
-      const n = parseInt(durMatch[1]);
-      if (durMatch[2].startsWith('week')) durDays = n * 7;
-      else if (durMatch[2].startsWith('night')) durDays = n;
+    if (durMatches.length) {
+      const last_dur = durMatches[durMatches.length - 1]; // most recent mention wins
+      const n = parseInt(last_dur[1]);
+      if (last_dur[2].toLowerCase().startsWith('week'))  durDays = n * 7;
+      else if (last_dur[2].toLowerCase().startsWith('night')) durDays = n;
       else durDays = n;
     }
     durDays = Math.max(1, durDays);
@@ -882,12 +895,54 @@ app.get('/api/admin/ai/sessions', requireAdmin, (req, res) => {
   const rows = db.prepare(`
     SELECT s.id, s.session_id, s.created_at, s.updated_at,
            json_array_length(s.messages) as message_count,
+           s.tokens_total,
            u.name as user_name, u.email as user_email
     FROM ai_chat_sessions s
     LEFT JOIN users u ON s.user_id = u.id
     ORDER BY s.updated_at DESC LIMIT 100
   `).all();
   ok(res, rows);
+});
+
+// ── ADMIN: AI token usage stats ───────────────────────────────────────────────
+app.get('/api/admin/ai/token-stats', requireAdmin, (req, res) => {
+  const totals = db.prepare(`
+    SELECT
+      COALESCE(SUM(total_tokens),0)    as total_tokens,
+      COALESCE(SUM(prompt_tokens),0)   as prompt_tokens,
+      COALESCE(SUM(response_tokens),0) as response_tokens,
+      COUNT(*)                          as total_requests,
+      COALESCE(AVG(total_tokens),0)    as avg_tokens_per_request
+    FROM ai_token_log
+  `).get();
+
+  const byProvider = db.prepare(`
+    SELECT provider,
+           COALESCE(SUM(total_tokens),0) as tokens,
+           COUNT(*) as requests
+    FROM ai_token_log GROUP BY provider ORDER BY tokens DESC
+  `).all();
+
+  const byDay = db.prepare(`
+    SELECT DATE(created_at) as day,
+           COALESCE(SUM(total_tokens),0) as tokens,
+           COUNT(*) as requests
+    FROM ai_token_log
+    GROUP BY DATE(created_at)
+    ORDER BY day ASC LIMIT 30
+  `).all();
+
+  const topSessions = db.prepare(`
+    SELECT s.session_id, s.tokens_total,
+           json_array_length(s.messages) as message_count,
+           s.updated_at,
+           u.name as user_name
+    FROM ai_chat_sessions s
+    LEFT JOIN users u ON s.user_id = u.id
+    ORDER BY s.tokens_total DESC LIMIT 10
+  `).all();
+
+  ok(res, { totals, byProvider, byDay, topSessions });
 });
 
 // ── Clean URLs: serve .html files without extension ─────────────────────────
