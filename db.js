@@ -164,12 +164,22 @@ try {
 } catch { /* column already exists */ }
 
 // ── seed AI settings row (singleton id=1) ────────────────────────────────────
+// Default provider is 'bob' — the built-in fallback that always works with no API key.
+// Admin can switch to openai/claude once they add API keys.
 const aiRow = db.prepare('SELECT id FROM ai_settings WHERE id=1').get();
 if (!aiRow) {
   db.prepare(`INSERT INTO ai_settings (id,provider,openai_key,claude_key,bob_key,model,enabled,retrain_freq,system_prompt)
-    VALUES (1,'openai','','','','gpt-4o-mini',1,'daily',
+    VALUES (1,'bob','','','','gpt-4o-mini',1,'daily',
     'You are JourneyOS Travel Assistant, an expert travel planner. You help users create personalised travel plans with dynamic pricing. You know all the destinations, trips, and offerings of JourneyOS. When building a travel plan, ask about destination, duration, budget, travel style (adventure/luxury/wellness/cultural), number of travelers, and preferred travel date. Once you have enough info, generate a structured travel plan with an itemised price breakdown. Always be helpful, enthusiastic and concise.')`
   ).run();
+} else {
+  // Migration: if provider is openai/claude but no key is set, switch to bob so chatbot works out-of-the-box.
+  // This fixes existing deployments that were seeded with provider='openai' before this change.
+  const s = db.prepare('SELECT provider, openai_key, claude_key FROM ai_settings WHERE id=1').get();
+  if ((s.provider === 'openai' && !s.openai_key) || (s.provider === 'claude' && !s.claude_key)) {
+    db.prepare("UPDATE ai_settings SET provider='bob', enabled=1 WHERE id=1").run();
+    console.log('[db] Migrated ai_settings provider to bob (no API key configured)');
+  }
 }
 
 // ── seed AI knowledge base ────────────────────────────────────────────────────

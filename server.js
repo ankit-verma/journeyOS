@@ -394,7 +394,8 @@ After the JSON, continue with a friendly message inviting them to purchase/book.
 `;
 
   let aiReply = null;
-  const provider = settings.provider || 'openai';
+  let usedProvider = 'bob'; // will be updated to actual provider if API call succeeds
+  const provider = settings.provider || 'bob';
 
   try {
     // ── Provider routing ─────────────────────────────────────────────────────
@@ -418,7 +419,8 @@ After the JSON, continue with a friendly message inviting them to purchase/book.
             try {
               const j = JSON.parse(data);
               if (j.error) return reject(new Error(j.error.message));
-              resolve(j.choices?.[0]?.message?.content || '');
+              const text = j.choices?.[0]?.message?.content || '';
+              resolve(text);
             } catch(e) { reject(e); }
           });
         });
@@ -426,6 +428,7 @@ After the JSON, continue with a friendly message inviting them to purchase/book.
         hreq.write(payload);
         hreq.end();
       });
+      usedProvider = 'openai';
     } else if (provider === 'claude' && settings.claude_key) {
       const https = require('https');
       const claudeMsgs = messages.slice(-20).map(m => ({ role: m.role === 'assistant' ? 'assistant' : 'user', content: m.content }));
@@ -455,13 +458,16 @@ After the JSON, continue with a friendly message inviting them to purchase/book.
         hreq.write(payload);
         hreq.end();
       });
+      usedProvider = 'claude';
     } else {
-      // ── Built-in fallback (no API key needed) ─────────────────────────────
+      // ── Built-in BOB fallback (no API key needed) ─────────────────────────
       aiReply = generateFallbackReply(messages, systemPrompt, destinations, trips);
+      usedProvider = 'bob';
     }
   } catch (err) {
     console.error('AI provider error:', err.message);
     aiReply = generateFallbackReply(messages, systemPrompt, destinations, trips);
+    usedProvider = 'bob';
   }
 
   // ── Token estimation (1 token ≈ 4 chars — standard approximation) ───────────
@@ -484,19 +490,20 @@ After the JSON, continue with a friendly message inviting them to purchase/book.
       .run(session_id, provider, promptTok, responseTok, totalTok);
   }
 
-  ok(res, { reply: aiReply, tokens: { prompt: promptTok, response: responseTok, total: totalTok } });
+  ok(res, { reply: aiReply, provider: usedProvider, tokens: { prompt: promptTok, response: responseTok, total: totalTok } });
 }
 
 // ── Built-in AI fallback (rule-based travel planner) ─────────────────────────
 function generateFallbackReply(messages, _systemPrompt, destinations, trips) {
   const last = (messages[messages.length - 1]?.content || '').toLowerCase();
-  const allMsgs = messages.map(m => m.content.toLowerCase()).join(' ');
+  // IMPORTANT: allMsgs must only be USER messages — bot replies contain duration/destination
+  // suggestions (e.g. "3–5 days", "7 days") that corrupt detection if included.
+  const userMsgs = messages.filter(m => m.role === 'user');
+  const allMsgs  = userMsgs.map(m => m.content.toLowerCase()).join(' ');
 
   // ── Destination detection ─────────────────────────────────────────────────
-  // Priority: most-recent user message first, then full history.
-  // This prevents an old destination (e.g. Kyoto) overriding a new one (Paris).
-  const userMsgs = messages.filter(m => m.role === 'user');
-  const recentUserTexts = userMsgs.slice(-2).map(m => m.content.toLowerCase()); // last 2 user turns
+  // Priority: most-recent user message first, then full user history.
+  const recentUserTexts = userMsgs.slice(-2).map(m => m.content.toLowerCase());
   const recentText = recentUserTexts.join(' ');
 
   function findSeeded(text) {
@@ -505,14 +512,14 @@ function generateFallbackReply(messages, _systemPrompt, destinations, trips) {
     );
   }
   function findPhrase(text) {
-    // "want to go to X", "go to X", "visit X", "trip to X", "travel to X"
+    // "want to go to X", "go to X", "visit X", "trip to X", "travel to X", "holiday in X"
     const m = text.match(
-      /(?:want(?:ed)?\s+to\s+(?:go\s+to|visit|travel\s+to)|go\s+to|headed\s+to|trip\s+to|travel(?:ling)?\s+to|fly(?:ing)?\s+to|visit(?:ing)?|explore|plan(?:ning)?\s+a?\s*trip\s+to)\s+([a-z][a-z\s]{1,28}?)(?:\s+for\s|\s+\d|\s*,|\s*\.|$)/i
+      /(?:want(?:ed)?\s+to\s+(?:go\s+to|visit|travel\s+to)|go\s+to|headed\s+to|trip\s+to|travel(?:ling)?\s+to|fly(?:ing)?\s+to|visit(?:ing)?|explore|plan(?:ning)?\s+a?\s*trip\s+to|holiday\s+in|vacation\s+in|escape\s+to|getaway\s+to|tour\s+(?:of|in|to)|road\s+trip\s+(?:to|in|through))\s+([a-z][a-z\s,]{1,35}?)(?:\s+for\s|\s+\d|\s*,|\s*\.|$)/i
     );
     return m;
   }
   // Non-place words that should never be matched as a city/country origin in "X to Y"
-  const NOT_PLACE = /^(trip|travel|plan|go|i|we|a|the|my|our|fly|from|how|want|need|looking|thinking|considering|doing|having|taking|make|get|just|also|please|can|could|would|help|book|find|show|tell|give|what|where|when|why|which|this|that|these|those|your|their|his|her|its|solo|family|couple|group|weekend|vacation|holiday|getaway|tour|escape|adventure|luxury|budget|cultural|wellness|romantic|hiking|beach|safari|cruise)$/i;
+  const NOT_PLACE = /^(trip|travel|plan|go|i|we|a|the|my|our|fly|from|how|want|need|looking|thinking|considering|doing|having|taking|make|get|just|also|please|can|could|would|help|book|find|show|tell|give|what|where|when|why|which|this|that|these|those|your|their|his|her|its|solo|family|couple|group|weekend|vacation|holiday|getaway|tour|escape|adventure|luxury|budget|cultural|wellness|romantic|hiking|beach|safari|cruise|business|corporate|road)$/i;
   function findRoute(text) {
     const m = text.match(/\b([a-z][a-z]{2,20}(?:\s[a-z][a-z]{2,15})?)\s+to\s+([a-z][a-z]{2,20}(?:\s[a-z][a-z]{2,15})?)\b/i);
     if (!m) return null;
@@ -521,7 +528,16 @@ function generateFallbackReply(messages, _systemPrompt, destinations, trips) {
   }
   // Bare-noun fallback: extract first proper-noun-like word(s) from the message
   // Used when no verb prefix or route pattern is present — e.g. "Paris 5 days", "Maldives luxury 6 days"
-  const STOP_WORDS = new Set(['trip','travel','plan','a','the','i','we','my','our','for','and','or','but','in','on','at','by','to','of','with','from','go','fly','want','need','help','book','find','show','tell','solo','family','couple','group','romantic','adventure','luxury','budget','cultural','wellness','hiking','beach','safari','cruise','weekend','vacation','holiday','getaway','tour','escape','days','day','nights','night','weeks','week','people','person','travelers','adults','budget','cheap','affordable','premium','high','end','explore','discover']);
+  const STOP_WORDS = new Set([
+    'trip','travel','plan','a','an','the','i','we','my','our','for','and','or','but',
+    'in','on','at','by','to','of','with','from','go','fly','want','need','help','book',
+    'find','show','tell','solo','family','couple','group','romantic','adventure','luxury',
+    'budget','cultural','wellness','hiking','beach','safari','cruise','weekend','vacation',
+    'holiday','getaway','tour','escape','days','day','nights','night','weeks','week',
+    'people','person','travelers','adults','pax','cheap','affordable','premium','high',
+    'end','explore','discover','business','corporate','quick','short','long','extended',
+    'upcoming','next','this','some','great','beautiful','amazing','wonderful','exciting',
+  ]);
   function findBareNoun(text) {
     // Try to find first capitalised word or sequence of 1-3 words that look like a place name
     // Strategy: split on spaces, skip stop-words and numbers, take up to 2 consecutive non-stop words
@@ -646,13 +662,16 @@ What works best for you?`;
   }
 
   if (readyToPlan) {
-    // Duration extraction — also handle "X nights"
-    const durMatch = allMsgs.match(/(\d+)\s*(day|week|night)/i);
+    // Duration extraction — use LAST match across user messages so the most recent answer wins.
+    // e.g. bot suggested "3-5 days / 7 days / 3 weeks" — we want the user's reply "3 weeks", not
+    // the first "3" from the bot's suggestion list (which is now excluded from allMsgs anyway).
+    const durMatches = [...allMsgs.matchAll(/(\d+)\s*(day|week|night)/gi)];
     let durDays = 7;
-    if (durMatch) {
-      const n = parseInt(durMatch[1]);
-      if (durMatch[2].startsWith('week')) durDays = n * 7;
-      else if (durMatch[2].startsWith('night')) durDays = n;
+    if (durMatches.length) {
+      const last_dur = durMatches[durMatches.length - 1]; // most recent mention wins
+      const n = parseInt(last_dur[1]);
+      if (last_dur[2].toLowerCase().startsWith('week'))  durDays = n * 7;
+      else if (last_dur[2].toLowerCase().startsWith('night')) durDays = n;
       else durDays = n;
     }
     durDays = Math.max(1, durDays);
@@ -675,9 +694,12 @@ What works best for you?`;
 
     // Resolve destination object
     const cleanDestName = detectedDestName && detectedDestName !== 'Your Destination' ? detectedDestName : 'Your Destination';
+    // For route matches like "Berlin to Prague", use destination as the arrival city for the title
+    const titleDest = routeMatch ? routeMatch[2].trim().replace(/\b\w/g, c => c.toUpperCase()) : cleanDestName;
     const dest = seededMatch || {
-      name: cleanDestName,
+      name: titleDest,
       country: detectedDestCountry || '',
+      region: '',
       tags: style === 'Adventure' ? 'Hiking,Nature,Adventure' : style === 'Luxury' ? 'Fine Dining,Spa,Exclusive Stays' : style === 'Cultural' ? 'History,Culture,Architecture' : style === 'Wellness' ? 'Spa,Relaxation,Wellness' : 'Sightseeing,Culture,Food',
       description: `A curated ${style.toLowerCase()} journey through ${cleanDestName}.`,
     };
@@ -688,29 +710,58 @@ What works best for you?`;
       (dest.country && t.route.toLowerCase().includes(dest.country.toLowerCase()))
     );
 
-    // Price calculation
-    const basePrice = matchingTrip ? matchingTrip.price : 1800;
-    const durationFactor = Math.max(0.5, durDays / 8);
-    const styleFactor = style === 'Luxury' ? 1.5 : style === 'Adventure' ? 1.1 : style === 'Wellness' ? 1.2 : 1.0;
+    // ── Dynamic price calculation ─────────────────────────────────────────────
+    // Base prices vary by region (rough daily rate per person before multipliers)
+    const REGION_BASE = {
+      asia: 220, europe: 280, 'north america': 300, 'south america': 240,
+      africa: 200, oceania: 320, 'middle east': 260,
+    };
+    const destRegion = (dest.region || '').toLowerCase();
+    const regionBase = REGION_BASE[destRegion] || 230;
+    const basePrice = matchingTrip ? matchingTrip.price : regionBase * 8;
+    const durationFactor = Math.max(0.6, durDays / 8);
+    const styleFactor = style === 'Luxury' ? 1.55 : style === 'Adventure' ? 1.1 : style === 'Wellness' ? 1.25 : style === 'Cultural' ? 1.05 : 1.0;
     const pricePerPerson = Math.round(basePrice * durationFactor * styleFactor / 50) * 50;
 
-    const accomm = Math.round(pricePerPerson * 0.32);
-    const transport = Math.round(pricePerPerson * 0.24);
-    const activities = Math.round(pricePerPerson * 0.28);
-    const meals = Math.round(pricePerPerson * 0.10);
-    const guide = Math.max(0, pricePerPerson - accomm - transport - activities - meals);
+    const accomm    = Math.round(pricePerPerson * 0.33);
+    const transport = Math.round(pricePerPerson * 0.23);
+    const activities = Math.round(pricePerPerson * 0.27);
+    const meals     = Math.round(pricePerPerson * 0.11);
+    const guide     = Math.max(0, pricePerPerson - accomm - transport - activities - meals);
 
-    // Future date
+    // ── Future travel date ────────────────────────────────────────────────────
     const travelDate = new Date();
     travelDate.setMonth(travelDate.getMonth() + 2);
     const travelDateStr = travelDate.toISOString().split('T')[0];
 
-    const highlights = (dest.tags || 'Sightseeing,Culture,Food').split(',')
-      .map(t => t.trim() + ' experience in ' + dest.name).slice(0, 2)
-      .concat(['Expert local guide throughout', 'Curated accommodation & dining']);
+    // ── Rich highlights based on style + destination tags ────────────────────
+    const tagList = (dest.tags || 'Sightseeing,Culture,Food').split(',').map(t => t.trim());
+    const styleActivities = {
+      Luxury:    ['Private guided city tour', 'Fine dining at award-winning restaurant', 'Luxury spa & wellness session', 'VIP cultural experience'],
+      Adventure: ['Guided outdoor trekking excursion', 'Local expedition with certified guide', 'Off-the-beaten-path exploration', 'Adventure gear & safety briefing included'],
+      Wellness:  ['Daily yoga & meditation classes', 'Traditional healing & spa rituals', 'Mindful nature walks', 'Organic farm-to-table meals'],
+      Cultural:  ['Guided heritage & museum tours', 'Traditional cooking class with locals', 'Artisan market & craft workshop', 'Evening cultural performance'],
+    };
+    const baseHighlights = styleActivities[style] || ['Guided city highlights tour', 'Local market food tasting', 'Scenic photography stops', 'Cultural immersion experience'];
+    const tagHighlights = tagList.slice(0, 2).map(t => `${t} experience in ${dest.name}`);
+    const highlights = [
+      ...tagHighlights,
+      ...baseHighlights.slice(0, 2),
+      'Expert local guide throughout',
+      'Hand-picked accommodation & airport transfers',
+    ].slice(0, 6);
+
+    // ── Best season (infer from destination region if not from DB) ───────────
+    const REGION_SEASON = {
+      asia: 'Oct–Apr', europe: 'May–Sep', 'north america': 'Jun–Aug',
+      'south america': 'Oct–Mar', africa: 'Jun–Sep', oceania: 'Sep–Nov',
+      'middle east': 'Oct–Mar',
+    };
+    const bestSeason = (matchingTrip ? matchingTrip.best_season : null) || REGION_SEASON[destRegion] || 'Year-round';
 
     const destLabel = dest.country ? `${dest.name}, ${dest.country}` : dest.name;
 
+    // ── Build plan JSON ───────────────────────────────────────────────────────
     const planJSON = {
       title: `${dest.name} ${style} ${durDays}-Day Experience`,
       destination: destLabel,
@@ -718,26 +769,28 @@ What works best for you?`;
       travel_style: style,
       travelers,
       travel_date: travelDateStr,
-      route: matchingTrip ? matchingTrip.route : destLabel,
+      route: matchingTrip ? matchingTrip.route : cleanDestName,
       highlights,
-      best_season: matchingTrip ? matchingTrip.best_season : 'Year-round',
+      best_season: bestSeason,
       price_per_person: pricePerPerson,
       price_breakdown: { accommodation: accomm, transport, activities, meals, guide },
       description: dest.description || `A curated ${style.toLowerCase()} journey through ${dest.name}.`,
     };
 
+    const totalCost = (pricePerPerson * travelers).toLocaleString();
     return `I've designed your personalised travel plan! 🎉
 
 \`\`\`travel-plan
 ${JSON.stringify(planJSON, null, 2)}
 \`\`\`
 
-This **${planJSON.title}** has been crafted just for you! Here's what's included:
-- ✅ ${durDays} days of curated experiences in ${dest.name}
-- ✅ ${travelers} traveler${travelers !== 1 ? 's' : ''} — total cost: **$${(pricePerPerson * travelers).toLocaleString()}**
-- ✅ Expert local guide, accommodation & key activities
+Here's your **${planJSON.title}**:
+- ✅ **${durDays} days** of curated ${style.toLowerCase()} experiences in ${dest.name}
+- ✅ **${travelers} traveler${travelers !== 1 ? 's' : ''}** — total cost: **$${totalCost}** ($${pricePerPerson.toLocaleString()}/person)
+- ✅ Includes: accommodation, transport, guided activities, meals & guide
+- ✅ Best season to visit: **${bestSeason}**
 
-Ready to make this trip a reality? Click **"Purchase This Plan"** below to add it to your bookings! 🚀`;
+Ready to make this trip a reality? Click **"Purchase This Plan"** below to confirm your booking! 🚀`;
   }
 
   // Generic helpful response
