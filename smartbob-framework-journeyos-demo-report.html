@@ -395,7 +395,7 @@ tr:last-child td{border-bottom:none}
     </div>
     <div class="parallel-card">
       <div class="parallel-card-hdr"><span class="pill pill-amber">integration-engineer</span></div>
-      Designed multi-provider AI routing: OpenAI → Claude → IBM BOB fallback, token estimation, session persistence
+      Designed multi-provider AI routing: OpenAI → Claude → watsonx.ai → IBM BOB fallback, token estimation, session persistence
     </div>
   </div>
 
@@ -469,7 +469,7 @@ tr:last-child td{border-bottom:none}
       <div class="card-desc">Automated Tests</div>
     </div>
     <div class="card" style="text-align:center">
-      <div class="card-value">3</div>
+      <div class="card-value">4</div>
       <div class="card-desc">AI Providers</div>
     </div>
   </div>
@@ -502,8 +502,8 @@ tr:last-child td{border-bottom:none}
         <div class="feature-item">Destinations viewer</div>
         <div class="feature-item">Newsletter subscribers — view &amp; remove</div>
         <div class="feature-item">Users list with roles</div>
-        <div class="feature-item">AI Chatbot — provider config (OpenAI/Claude/BOB)</div>
-        <div class="feature-item">API key management (OpenAI, Claude, BOB)</div>
+        <div class="feature-item">AI Chatbot — provider config (OpenAI/Claude/watsonx.ai/BOB)</div>
+        <div class="feature-item">API key management (OpenAI, Claude, watsonx.ai, BOB)</div>
         <div class="feature-item">Enable/disable chatbot toggle</div>
         <div class="feature-item">System prompt editor</div>
         <div class="feature-item">Auto-retrain frequency selector</div>
@@ -528,7 +528,8 @@ tr:last-child td{border-bottom:none}
         <div class="feature-item">Dynamic pricing formula with breakdown</div>
         <div class="feature-item">travel-plan JSON block → rendered plan card</div>
         <div class="feature-item">Purchase plan → creates trip + booking in DB</div>
-        <div class="feature-item">Multi-provider routing: OpenAI → Claude → BOB</div>
+        <div class="feature-item">Multi-provider routing: OpenAI → Claude → watsonx.ai → BOB</div>
+        <div class="feature-item">watsonx.ai integration: IBM Granite model via IBM Cloud IAM API key + Project ID</div>
         <div class="feature-item">Token estimation per request (1 tok ≈ 4 chars)</div>
         <div class="feature-item">Session persistence (messages + token_total)</div>
         <div class="feature-item">Self-training: Retrain Now rebuilds knowledge from live DB</div>
@@ -540,7 +541,7 @@ tr:last-child td{border-bottom:none}
       <div class="feature-list">
         <div class="feature-item"><strong>Demo 1 — AI Trip Creator:</strong> live chat, destination detection, plan generation, purchase flow with step tracker</div>
         <div class="feature-item"><strong>Live Token Meter:</strong> real-time Total / Prompt / Response / Turns counters, progress bar (0–10K budget), provider badge</div>
-        <div class="feature-item"><strong>Demo 2 — Provider Failover:</strong> animated cascade simulation OpenAI → Claude → BOB with token drain bars and failover log</div>
+        <div class="feature-item"><strong>Demo 2 — Provider Failover:</strong> animated cascade simulation OpenAI → Claude → watsonx.ai → BOB with token drain bars and failover log</div>
         <div class="feature-item"><strong>Demo 3 — Any Destination:</strong> test any destination worldwide, see AI plan generated live, platform stats refresh</div>
         <div class="feature-item">12/12 destination detection test cases passing</div>
         <div class="feature-item">Clean URL: /demo with 301 redirect from /demo.html</div>

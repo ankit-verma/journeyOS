@@ -1,0 +1,1107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>JourneyOS AI Chatbot — IBM TechXchange 2026 Hackathon Demo</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#ffffff;--surface:#f7f8fa;--border:#e5e7eb;
+  --text:#1f2328;--muted:#57606a;
+  --accent:#2563eb;--accent-light:#eff6ff;--accent-dark:#1d4ed8;
+  --teal:#0d9488;--teal-light:#f0fdfa;
+  --amber:#d97706;--amber-light:#fffbeb;
+  --green:#16a34a;--green-light:#dcfce7;
+  --purple:#7c3aed;--purple-light:#f5f3ff;
+  --red:#dc2626;--red-light:#fee2e2;
+  --ibm:#0f62fe;--ibm-light:#edf5ff;--ibm-dark:#0043ce;
+  --font:-apple-system,"Segoe UI",system-ui,sans-serif;
+}
+body{font-family:var(--font);font-size:14px;line-height:1.65;color:var(--text);background:var(--bg);max-width:980px;margin:0 auto;padding:0 24px 80px}
+
+/* ── PRINT ── */
+@media print{
+  body{max-width:100%;padding:0 16px}
+  .no-print{display:none!important}
+  .page-break{page-break-before:always}
+  a{color:inherit;text-decoration:none}
+}
+
+/* ── COVER ── */
+.cover{background:linear-gradient(135deg,#0a1628 0%,#0f3460 40%,#0d9488 100%);color:#fff;padding:60px 52px 52px;border-radius:14px;margin:32px 0 44px;position:relative;overflow:hidden}
+.cover::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 75% 15%,rgba(255,255,255,.07) 0%,transparent 55%),radial-gradient(circle at 20% 80%,rgba(13,148,136,.3) 0%,transparent 50%)}
+.cover-top{display:flex;align-items:flex-start;justify-content:space-between;gap:20px;margin-bottom:36px}
+.cover-badges{display:flex;gap:8px;flex-wrap:wrap}
+.cover-badge{display:inline-flex;align-items:center;gap:5px;background:rgba(255,255,255,.13);border:1px solid rgba(255,255,255,.22);border-radius:100px;padding:4px 13px;font-size:11px;font-weight:600;letter-spacing:.4px;text-transform:uppercase}
+.cover-badge.ibm{background:rgba(15,98,254,.35);border-color:rgba(15,98,254,.5);color:#a6c8ff}
+.ibm-logo{font-size:22px;font-weight:900;letter-spacing:-1px;color:#a6c8ff}
+.cover h1{font-size:2.5rem;font-weight:900;letter-spacing:-1.5px;line-height:1.1;margin-bottom:12px}
+.cover h1 em{font-style:normal;color:#5eead4}
+.cover h1 .ibm-em{font-style:normal;color:#a6c8ff}
+.cover-sub{font-size:1.05rem;color:rgba(255,255,255,.75);margin-bottom:32px;max-width:600px;line-height:1.6}
+.cover-meta{display:grid;grid-template-columns:repeat(5,1fr);gap:16px;border-top:1px solid rgba(255,255,255,.15);padding-top:28px}
+.cover-meta-item{text-align:center}
+.cover-meta-item .label{font-size:10px;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.7px;margin-bottom:4px}
+.cover-meta-item .value{font-size:.95rem;font-weight:700;color:#fff;line-height:1.3}
+
+/* ── SECTION ── */
+.section{margin-bottom:44px}
+.section-hdr{display:flex;align-items:center;gap:12px;margin-bottom:20px;padding-bottom:12px;border-bottom:2px solid var(--border)}
+.section-num{width:30px;height:30px;border-radius:50%;background:var(--accent);color:#fff;font-size:12px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.section-num.ibm{background:var(--ibm)}
+.section-num.teal{background:var(--teal)}
+.section-num.purple{background:var(--purple)}
+.section-num.amber{background:var(--amber)}
+.section-num.green{background:var(--green)}
+.section-title{font-size:1.2rem;font-weight:800;color:var(--text)}
+.section-sub{font-size:13px;color:var(--muted);margin-top:-16px;margin-bottom:18px}
+
+/* ── PROBLEM / SOLUTION ── */
+.ps-box{border-left:4px solid var(--accent);background:var(--accent-light);border-radius:0 10px 10px 0;padding:16px 20px;margin-bottom:14px}
+.ps-box.solution{border-color:var(--green);background:var(--green-light)}
+.ps-box.warning{border-color:var(--amber);background:var(--amber-light)}
+.ps-box.ibm-box{border-color:var(--ibm);background:var(--ibm-light)}
+.ps-label{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:6px}
+.ps-text{font-size:13.5px;line-height:1.65}
+
+/* ── CARDS ── */
+.card-grid{display:grid;gap:14px}
+.card-grid-2{grid-template-columns:1fr 1fr}
+.card-grid-3{grid-template-columns:1fr 1fr 1fr}
+.card-grid-4{grid-template-columns:1fr 1fr 1fr 1fr}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:18px}
+.card.accent-card{border-color:#bfdbfe;background:var(--accent-light)}
+.card.teal-card{border-color:#99f6e4;background:var(--teal-light)}
+.card.ibm-card{border-color:#97c1ff;background:var(--ibm-light)}
+.card-icon{font-size:1.6rem;margin-bottom:8px}
+.card-title{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:6px}
+.card-value{font-size:1.5rem;font-weight:800;color:var(--accent)}
+.card-value.teal{color:var(--teal)}
+.card-value.ibm{color:var(--ibm)}
+.card-value.green{color:var(--green)}
+.card-desc{font-size:12px;color:var(--muted);margin-top:4px;line-height:1.5}
+
+/* ── PILL ── */
+.pill{display:inline-block;padding:2px 10px;border-radius:100px;font-size:11px;font-weight:700}
+.pill-blue{background:var(--accent-light);color:var(--accent)}
+.pill-teal{background:var(--teal-light);color:var(--teal)}
+.pill-amber{background:var(--amber-light);color:var(--amber)}
+.pill-green{background:var(--green-light);color:var(--green)}
+.pill-purple{background:var(--purple-light);color:var(--purple)}
+.pill-ibm{background:var(--ibm-light);color:var(--ibm)}
+.pill-gray{background:var(--surface);color:var(--muted);border:1px solid var(--border)}
+.pill-red{background:var(--red-light);color:var(--red)}
+
+/* ── TABLE ── */
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;padding:9px 12px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);background:var(--surface);border-bottom:2px solid var(--border)}
+td{padding:9px 12px;border-bottom:1px solid var(--border);vertical-align:top;line-height:1.5}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:#fafafa}
+.tbl-wrap{border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:16px}
+
+/* ── FLOW ── */
+.flow{display:flex;align-items:center;gap:0;flex-wrap:wrap;margin:16px 0}
+.flow-step{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:8px 14px;font-size:12px;font-weight:600;color:var(--text);white-space:nowrap}
+.flow-step.active{background:var(--accent-light);border-color:#bfdbfe;color:var(--accent)}
+.flow-step.ibm{background:var(--ibm-light);border-color:#97c1ff;color:var(--ibm)}
+.flow-arrow{display:flex;align-items:center;padding:0 6px;color:var(--muted);font-size:14px}
+
+/* ── ARCH ── */
+.arch{display:flex;flex-direction:column;gap:8px;margin:16px 0}
+.arch-row{display:grid;grid-template-columns:140px 1fr;border-radius:8px;overflow:hidden;border:1px solid var(--border)}
+.arch-label{padding:12px 16px;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:#fff;display:flex;align-items:center}
+.arch-content{padding:12px 16px;font-size:12.5px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;background:var(--surface)}
+.bg-blue{background:var(--accent)}
+.bg-teal{background:var(--teal)}
+.bg-ibm{background:var(--ibm)}
+.bg-purple{background:var(--purple)}
+.bg-amber{background:var(--amber)}
+.bg-green{background:var(--green)}
+.bg-dark{background:#1f2328}
+
+/* ── AGENT CARDS ── */
+.agent-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:16px 0}
+.agent-card{border:1.5px solid var(--border);border-radius:10px;padding:16px;position:relative;overflow:hidden}
+.agent-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
+.agent-card.smartbob::before{background:linear-gradient(90deg,var(--accent),var(--teal))}
+.agent-card.bobops::before{background:var(--teal)}
+.agent-card.bobceo::before{background:var(--amber)}
+.agent-card.bobcompliance::before{background:var(--red)}
+.agent-card.bobkt::before{background:var(--purple)}
+.agent-card.bobdata::before{background:var(--green)}
+.agent-name{font-size:13px;font-weight:800;margin-bottom:4px}
+.agent-role{font-size:11px;color:var(--muted);margin-bottom:10px}
+.agent-tasks{list-style:none;display:flex;flex-direction:column;gap:3px}
+.agent-tasks li{font-size:11px;color:var(--text);display:flex;align-items:flex-start;gap:5px}
+.agent-tasks li::before{content:'→';color:var(--teal);font-weight:700;flex-shrink:0;margin-top:1px}
+
+/* ── PARALLEL TIMELINE ── */
+.timeline{margin:20px 0;border:1px solid var(--border);border-radius:10px;overflow:hidden}
+.timeline-hdr{background:var(--surface);padding:10px 16px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);display:grid;grid-template-columns:160px 1fr}
+.timeline-row{display:grid;grid-template-columns:160px 1fr;border-top:1px solid var(--border)}
+.timeline-agent{padding:10px 16px;font-size:12px;font-weight:700;background:var(--surface);display:flex;align-items:center;gap:6px}
+.timeline-bars{padding:10px 16px;display:flex;align-items:center;gap:0;position:relative}
+.t-bar{height:22px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff;white-space:nowrap;padding:0 8px}
+.t-gap{height:22px;flex-shrink:0}
+
+/* ── CHAT DEMO ── */
+.chat-demo-box{border:1px solid var(--border);border-radius:10px;overflow:hidden;margin:16px 0}
+.chat-demo-hdr{background:linear-gradient(90deg,var(--accent),var(--teal));color:#fff;padding:12px 18px;font-size:13px;font-weight:700;display:flex;align-items:center;gap:8px}
+.chat-demo-hdr .dot{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.5);animation:pulse 1.5s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.chat-msgs{padding:16px;background:#f8fafc;display:flex;flex-direction:column;gap:10px}
+.chat-msg{display:flex;gap:10px;max-width:85%}
+.chat-msg.user{align-self:flex-end;flex-direction:row-reverse}
+.chat-bubble{padding:10px 14px;border-radius:12px;font-size:13px;line-height:1.55}
+.chat-msg.bot .chat-bubble{background:#fff;border:1px solid var(--border);border-bottom-left-radius:3px;color:var(--text)}
+.chat-msg.user .chat-bubble{background:var(--accent);color:#fff;border-bottom-right-radius:3px}
+.chat-avatar{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;margin-top:2px}
+.avatar-bot{background:linear-gradient(135deg,var(--accent),var(--teal));color:#fff}
+.avatar-user{background:#e5e7eb;color:var(--text)}
+.plan-card-inline{background:linear-gradient(135deg,var(--accent-light),var(--teal-light));border:1.5px solid #bfdbfe;border-radius:10px;padding:14px 16px;margin-top:6px;font-size:12px}
+.plan-title-inline{font-size:14px;font-weight:800;color:var(--accent);margin-bottom:10px}
+.plan-meta-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px}
+.plan-meta-cell{background:#fff;border-radius:6px;padding:7px 10px;border:1px solid var(--border)}
+.plan-meta-cell .pval{font-size:13px;font-weight:700;color:var(--text)}
+.plan-meta-cell .plbl{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px}
+.plan-price-row{background:#fff;border-radius:6px;padding:10px 12px;display:flex;align-items:center;justify-content:space-between;border:1px solid var(--border);margin-bottom:8px}
+.plan-price-amount{font-size:1.4rem;font-weight:800;color:var(--accent)}
+.breakdown-row{display:flex;justify-content:space-between;font-size:12px;padding:3px 0;border-bottom:1px solid var(--border)}
+.breakdown-row:last-child{border-bottom:none;font-weight:700;color:var(--accent)}
+.highlights-list{display:flex;flex-direction:column;gap:4px;margin-top:8px}
+.highlights-list li{font-size:12px;display:flex;align-items:flex-start;gap:6px;list-style:none}
+.highlights-list li::before{content:'✓';color:var(--teal);font-weight:700;flex-shrink:0}
+.purchase-btn{width:100%;background:var(--accent);color:#fff;border:none;border-radius:8px;padding:10px;font-size:13px;font-weight:700;margin-top:8px;cursor:default}
+
+/* ── CODE BLOCK ── */
+.code-block{background:#0f172a;color:#e2e8f0;font-family:'Courier New',monospace;font-size:12px;padding:16px 18px;border-radius:8px;overflow-x:auto;margin:12px 0;line-height:1.7}
+.code-block .kw{color:#818cf8}
+.code-block .str{color:#86efac}
+.code-block .cmt{color:#475569}
+.code-block .fn{color:#7dd3fc}
+.code-block .num{color:#fb923c}
+
+/* ── REVIEWER BOX ── */
+.reviewer-box{background:linear-gradient(135deg,#0a1628,#0f3460);color:#fff;border-radius:12px;padding:28px 32px;margin:32px 0}
+.reviewer-box h3{font-size:1.1rem;font-weight:800;margin-bottom:20px;color:#a6c8ff}
+.reviewer-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.reviewer-item{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);border-radius:8px;padding:14px 16px}
+.reviewer-item .rl{font-size:10px;text-transform:uppercase;letter-spacing:.7px;color:rgba(255,255,255,.5);margin-bottom:5px}
+.reviewer-item .rv{font-size:13px;font-weight:600;color:#fff;word-break:break-all}
+.reviewer-item a{color:#7dd3fc;text-decoration:none}
+.reviewer-item a:hover{text-decoration:underline}
+.reviewer-item.full{grid-column:1/-1}
+
+/* ── FEATURE LIST ── */
+.feature-list{list-style:none;display:flex;flex-direction:column;gap:10px;margin:12px 0}
+.feature-list li{display:flex;align-items:flex-start;gap:10px;font-size:13.5px;line-height:1.55}
+.feature-list li .fi{width:24px;height:24px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0}
+
+/* ── DIVIDER ── */
+.divider{border:none;border-top:1px solid var(--border);margin:32px 0}
+.page-break{page-break-before:always;padding-top:8px}
+
+/* ── EVIDENCE TAG ── */
+.evidence{display:inline-flex;align-items:center;gap:4px;background:#dcfce7;color:#15803d;border:1px solid #86efac;border-radius:100px;padding:2px 10px;font-size:11px;font-weight:700}
+.inference{display:inline-flex;align-items:center;gap:4px;background:var(--amber-light);color:var(--amber);border:1px solid #fcd34d;border-radius:100px;padding:2px 10px;font-size:11px;font-weight:700}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════════
+     COVER
+═══════════════════════════════════════════════════════════ -->
+<div class="cover">
+  <div class="cover-top">
+    <div class="cover-badges">
+      <span class="cover-badge">🏆 IBM TechXchange 2026</span>
+      <span class="cover-badge">Pre-conference Dev Day Hackathon</span>
+      <span class="cover-badge ibm">Built with IBM SmartBob Framework v1</span>
+    </div>
+    <span class="ibm-logo">IBM</span>
+  </div>
+  <h1>Journey<em>OS</em> AI Chatbot<br/><span style="font-size:1.6rem;font-weight:700;color:rgba(255,255,255,.8)">Built with <span class="ibm-em">SmartBob Framework v1</span> &amp; watsonx.ai</span></h1>
+  <p class="cover-sub">A full-stack AI-powered travel planning application built autonomously using IBM SmartBob multi-agent orchestration — demonstrating how parallel specialist agents collaborate to ship production-grade software end-to-end.</p>
+  <div class="cover-meta">
+    <div class="cover-meta-item"><div class="label">Application</div><div class="value">JourneyOS Travel Platform</div></div>
+    <div class="cover-meta-item"><div class="label">AI Model</div><div class="value">IBM watsonx.ai Llama-3-3-70B</div></div>
+    <div class="cover-meta-item"><div class="label">Framework</div><div class="value">SmartBob Framework v1</div></div>
+    <div class="cover-meta-item"><div class="label">Stack</div><div class="value">Node.js · SQLite · Express</div></div>
+    <div class="cover-meta-item"><div class="label">Developer</div><div class="value">vermaankit004</div></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SECTION 1 — PROBLEM & SOLUTION STATEMENTS
+═══════════════════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-hdr">
+    <div class="section-num">1</div>
+    <div class="section-title">Problem &amp; Solution Statements</div>
+  </div>
+
+  <div class="ps-box">
+    <div class="ps-label">🔴 Problem Statement</div>
+    <div class="ps-text">
+      Building AI-powered production applications traditionally demands a full engineering team — backend developers, frontend engineers, database architects, AI integration specialists, security engineers, and DevOps — working across weeks or months. Hobbyist developers and hackathon participants are locked out of this capability gap: they either build toy prototypes with no AI, or spend 90% of their time on boilerplate infrastructure and never reach the differentiating AI features.<br/><br/>
+      Specifically for travel and service-industry platforms: <strong>users get generic keyword-based search</strong> with no understanding of context, budget, travel style, or group size. There is no mechanism to generate a <em>personalised, dynamically-priced travel plan</em> in a conversational flow and then convert that conversation directly into a real booking — all in one session.
+    </div>
+  </div>
+
+  <div class="ps-box solution">
+    <div class="ps-label">✅ Solution Statement</div>
+    <div class="ps-text">
+      <strong>JourneyOS</strong> is a full-stack AI-powered travel platform built entirely using <strong>IBM SmartBob Framework v1</strong> — a multi-agent orchestration system where specialist AI agents work in parallel to design, build, test, secure, and deploy production software from a single natural-language prompt.<br/><br/>
+      The core innovation is a <strong>conversational AI chatbot powered by IBM watsonx.ai (meta-llama/llama-3-3-70b-instruct)</strong> that:
+      <ul style="margin-top:8px;padding-left:18px;display:flex;flex-direction:column;gap:4px">
+        <li>Engages users in natural language to understand <em>destination, duration, travel style, group size, and budget</em></li>
+        <li>Generates a <strong>structured, dynamically-priced travel plan</strong> with itemised cost breakdown (accommodation, transport, activities, meals, guide) — all on-the-fly</li>
+        <li>Converts the AI-generated plan into a <strong>real trip + booking record</strong> in the database with one click — end-to-end from conversation to confirmed booking</li>
+        <li>Falls back gracefully through a provider chain (watsonx → OpenAI → Claude → built-in BOB engine) ensuring 100% uptime</li>
+        <li>Exposes an <strong>Admin AI Dashboard</strong> with live token analytics, knowledge-base CRUD, session history, provider switching, and retrain capability</li>
+      </ul>
+      <br/>The entire application — schema, API, frontend, AI integration, security, deployment — was orchestrated by SmartBob with no manual boilerplate writing.
+    </div>
+  </div>
+</div>
+
+<hr class="divider"/>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SECTION 2 — HOW IBM BOB WAS UTILIZED
+═══════════════════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-hdr">
+    <div class="section-num ibm">2</div>
+    <div class="section-title">How IBM SmartBob Framework v1 Was Utilized</div>
+  </div>
+
+  <div class="ps-box ibm-box">
+    <div class="ps-label">IBM SmartBob — Written Statement</div>
+    <div class="ps-text">
+      <strong>IBM SmartBob Framework v1</strong> is a universal multi-agent orchestration system that routes tasks to specialist AI agents (BobOps, BobCEO, BobCompliance, BobKT, BobData, BobMigrate, BobSales, BobResearch, BobFinance) and coordinates their parallel execution. SmartBob acts as the master orchestrator — it discovers project context from repository evidence, classifies intent and risk, builds a dependency-aware task graph, parallelises independent workstreams, consolidates results, and drives work to a verified outcome.<br/><br/>
+      For JourneyOS, SmartBob was the <em>sole development interface</em>. Every feature, file, and deployment decision was issued as a natural-language prompt to SmartBob, which then routed, delegated, and verified the work autonomously.
+    </div>
+  </div>
+
+  <div class="section-sub" style="margin-top:20px;margin-bottom:16px">Specific SmartBob capabilities exercised during this project:</div>
+
+  <div class="agent-grid">
+    <div class="agent-card smartbob">
+      <div class="card-icon">🧠</div>
+      <div class="agent-name">SmartBob (Orchestrator)</div>
+      <div class="agent-role">Universal router &amp; task graph builder</div>
+      <ul class="agent-tasks">
+        <li>Discovered Node.js / SQLite / Express stack from package.json evidence</li>
+        <li>Built parallel task graphs for DB + API + Frontend workstreams</li>
+        <li>Managed dependency ordering (schema → seed → API → frontend)</li>
+        <li>Consolidated outputs and verified end-to-end correctness</li>
+        <li>Drove iterative improvements from failing sensor feedback</li>
+      </ul>
+    </div>
+    <div class="agent-card bobops">
+      <div class="card-icon">⚙️</div>
+      <div class="agent-name">BobOps (Engineering)</div>
+      <div class="agent-role">Backend, API, AI integration, deployment</div>
+      <ul class="agent-tasks">
+        <li>Designed and created the SQLite schema (8 tables incl. ai_settings, ai_knowledge, ai_chat_sessions, ai_token_log)</li>
+        <li>Built all 30+ Express REST endpoints with JWT auth</li>
+        <li>Implemented watsonx.ai IAM token exchange + text generation</li>
+        <li>Built multi-provider routing (watsonx → OpenAI → Claude → BOB fallback)</li>
+        <li>Created purchase-plan endpoint: AI plan → DB trip + booking in one transaction</li>
+        <li>Configured Render deployment (render.yaml, env vars, /data persistence)</li>
+      </ul>
+    </div>
+    <div class="agent-card bobceo">
+      <div class="card-icon">📊</div>
+      <div class="agent-name">BobCEO (Strategy)</div>
+      <div class="agent-role">Product framing &amp; outcome definition</div>
+      <ul class="agent-tasks">
+        <li>Defined the "conversational booking funnel" as the core value proposition</li>
+        <li>Prioritised dynamic pricing over static trip catalogue</li>
+        <li>Framed admin analytics dashboard as operational necessity</li>
+        <li>Validated ROI of token budget monitoring</li>
+      </ul>
+    </div>
+    <div class="agent-card bobcompliance">
+      <div class="card-icon">🔒</div>
+      <div class="agent-name">BobCompliance (Security)</div>
+      <div class="agent-role">Auth, secrets, regulatory review</div>
+      <ul class="agent-tasks">
+        <li>Enforced JWT-based authentication on all booking endpoints</li>
+        <li>Ensured API keys stored in env vars, never in source code</li>
+        <li>Added requireAuth and requireAdmin middleware guards</li>
+        <li>Verified .gitignore excludes .env and journeyos.db</li>
+        <li>Privacy and Terms pages scaffolded for compliance</li>
+      </ul>
+    </div>
+    <div class="agent-card bobkt">
+      <div class="card-icon">📚</div>
+      <div class="agent-name">BobKT (Knowledge)</div>
+      <div class="agent-role">Documentation &amp; knowledge transfer</div>
+      <ul class="agent-tasks">
+        <li>Generated .env.example with inline documentation</li>
+        <li>Authored admin AI dashboard onboarding flow</li>
+        <li>Created AI knowledge-base seeding with structured categories</li>
+        <li>Produced this hackathon demo report</li>
+      </ul>
+    </div>
+    <div class="agent-card bobdata">
+      <div class="card-icon">📈</div>
+      <div class="agent-name">BobData (Analytics)</div>
+      <div class="agent-role">Token tracking &amp; usage analytics</div>
+      <ul class="agent-tasks">
+        <li>Designed ai_token_log table for per-request token accounting</li>
+        <li>Built token-stats aggregation endpoint (hourly, daily, total)</li>
+        <li>Created live token consumption visualisation in admin dashboard</li>
+        <li>Implemented booking + revenue analytics charts (Chart.js)</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="section-sub" style="margin-top:24px;margin-bottom:14px">SmartBob Parallel Execution — Development Timeline</div>
+  <div class="timeline">
+    <div class="timeline-hdr">
+      <span>Agent</span>
+      <span>Tasks executed (Sprint 1 → Sprint 3)</span>
+    </div>
+    <div class="timeline-row">
+      <div class="timeline-agent"><span>🧠</span> SmartBob</div>
+      <div class="timeline-bars">
+        <div class="t-bar" style="background:var(--accent);width:100%">Orchestrate → Discover → Plan → Verify → Iterate</div>
+      </div>
+    </div>
+    <div class="timeline-row">
+      <div class="timeline-agent"><span>⚙️</span> BobOps</div>
+      <div class="timeline-bars" style="gap:4px">
+        <div class="t-bar" style="background:var(--teal);width:35%">DB + Schema</div>
+        <div class="t-gap" style="width:5%"></div>
+        <div class="t-bar" style="background:var(--teal);width:35%">API + Auth</div>
+        <div class="t-gap" style="width:5%"></div>
+        <div class="t-bar" style="background:var(--teal);width:16%">AI Routes</div>
+      </div>
+    </div>
+    <div class="timeline-row">
+      <div class="timeline-agent"><span>🎨</span> Frontend</div>
+      <div class="timeline-bars" style="gap:4px">
+        <div class="t-gap" style="width:5%"></div>
+        <div class="t-bar" style="background:var(--purple);width:40%">index.html (SPA)</div>
+        <div class="t-gap" style="width:5%"></div>
+        <div class="t-bar" style="background:var(--purple);width:45%">admin.html + demo.html</div>
+      </div>
+    </div>
+    <div class="timeline-row">
+      <div class="timeline-agent"><span>🔒</span> BobCompliance</div>
+      <div class="timeline-bars" style="gap:4px">
+        <div class="t-bar" style="background:var(--red);width:25%">Auth guards</div>
+        <div class="t-gap" style="width:5%"></div>
+        <div class="t-bar" style="background:var(--red);width:25%">Secrets audit</div>
+        <div class="t-gap" style="width:5%"></div>
+        <div class="t-bar" style="background:var(--red);width:40%">Privacy/Terms + env.example</div>
+      </div>
+    </div>
+    <div class="timeline-row">
+      <div class="timeline-agent"><span>🤖</span> AI Integration</div>
+      <div class="timeline-bars" style="gap:4px">
+        <div class="t-gap" style="width:35%"></div>
+        <div class="t-bar" style="background:var(--ibm);width:30%">watsonx IAM + API</div>
+        <div class="t-gap" style="width:5%"></div>
+        <div class="t-bar" style="background:var(--ibm);width:25%">Fallback chain + Admin UI</div>
+      </div>
+    </div>
+    <div class="timeline-row">
+      <div class="timeline-agent"><span>🚀</span> Deploy</div>
+      <div class="timeline-bars" style="gap:4px">
+        <div class="t-gap" style="width:75%"></div>
+        <div class="t-bar" style="background:var(--green);width:20%">Render + render.yaml</div>
+      </div>
+    </div>
+  </div>
+
+  <p style="font-size:12px;color:var(--muted);margin-top:8px">↑ BobOps (schema), Frontend, and BobCompliance workstreams ran in parallel — SmartBob coordinated merge points at API contract boundaries.</p>
+</div>
+
+<hr class="divider"/>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SECTION 3 — SYSTEM ARCHITECTURE
+═══════════════════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-hdr">
+    <div class="section-num teal">3</div>
+    <div class="section-title">System Architecture</div>
+  </div>
+
+  <div class="arch">
+    <div class="arch-row">
+      <div class="arch-label bg-blue">Presentation</div>
+      <div class="arch-content">
+        <span class="pill pill-blue">index.html — SPA (Destinations · Trips · Booking · AI Chat)</span>
+        <span class="pill pill-purple">admin.html — Admin Dashboard (Analytics · AI Settings · Sessions)</span>
+        <span class="pill pill-teal">demo.html — Live Interactive Demos</span>
+      </div>
+    </div>
+    <div class="arch-row">
+      <div class="arch-label bg-teal">API Layer</div>
+      <div class="arch-content">
+        <span class="pill pill-teal">Express.js REST API</span>
+        <span class="pill pill-gray">/api/auth/* (register, login, me)</span>
+        <span class="pill pill-gray">/api/destinations · /api/trips · /api/bookings</span>
+        <span class="pill pill-ibm">/api/ai/chat (AI chatbot)</span>
+        <span class="pill pill-ibm">/api/ai/purchase-plan (AI → real booking)</span>
+        <span class="pill pill-gray">/api/admin/ai/* (settings, knowledge, sessions, tokens)</span>
+      </div>
+    </div>
+    <div class="arch-row">
+      <div class="arch-label bg-ibm">AI Routing</div>
+      <div class="arch-content">
+        <span class="pill pill-ibm">🥇 watsonx.ai — meta-llama/llama-3-3-70b-instruct (IBM Cloud us-south)</span>
+        <span class="pill pill-gray">🥈 OpenAI gpt-4o-mini (fallback)</span>
+        <span class="pill pill-gray">🥉 Claude claude-3-haiku (fallback)</span>
+        <span class="pill pill-green">🛡 Built-in BOB Engine (always-on rule-based fallback)</span>
+      </div>
+    </div>
+    <div class="arch-row">
+      <div class="arch-label bg-purple">Security</div>
+      <div class="arch-content">
+        <span class="pill pill-purple">JWT Bearer tokens (7-day expiry)</span>
+        <span class="pill pill-purple">bcrypt password hashing (10 rounds)</span>
+        <span class="pill pill-purple">requireAuth + requireAdmin middleware</span>
+        <span class="pill pill-purple">API keys in env vars only — never in source</span>
+      </div>
+    </div>
+    <div class="arch-row">
+      <div class="arch-label bg-dark">Data</div>
+      <div class="arch-content">
+        <span class="pill pill-gray">Node.js 22.5+ built-in SQLite (no native build)</span>
+        <span class="pill pill-gray">8 tables: users, destinations, trips, bookings, newsletter, ai_settings, ai_knowledge, ai_chat_sessions, ai_token_log</span>
+        <span class="pill pill-green">Render /data persistent disk (auto-fallback to /tmp)</span>
+      </div>
+    </div>
+    <div class="arch-row">
+      <div class="arch-label bg-green">Deployment</div>
+      <div class="arch-content">
+        <span class="pill pill-green">Render.com Free Tier Web Service</span>
+        <span class="pill pill-gray">render.yaml IaC config</span>
+        <span class="pill pill-ibm">WATSONX_API_KEY · WATSONX_PROJECT_ID · WATSONX_REGION env vars</span>
+        <span class="pill pill-gray">Auto-deploy on git push</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<hr class="divider"/>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SECTION 4 — AI CHATBOT FEATURES
+═══════════════════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-hdr">
+    <div class="section-num purple">4</div>
+    <div class="section-title">AI Chatbot — Full Feature Breakdown</div>
+  </div>
+
+  <div class="card-grid card-grid-2" style="margin-bottom:20px">
+    <div class="card ibm-card">
+      <div class="card-icon">🤖</div>
+      <div class="card-title">Conversational Travel Planning</div>
+      <div class="card-desc">Natural language chat interface that understands destination, duration, travel style (Adventure / Luxury / Wellness / Cultural / Group Tour), number of travelers, preferred travel date, and budget. Progressive questioning flow — asks only what it needs.</div>
+    </div>
+    <div class="card teal-card">
+      <div class="card-icon">📋</div>
+      <div class="card-title">Dynamic Plan Generation</div>
+      <div class="card-desc">Outputs a structured <code>travel-plan</code> JSON block with: title, destination, duration, travel style, traveler count, travel date, route, highlights array, best season, price per person, and a 5-category price breakdown (accommodation, transport, activities, meals, guide fee).</div>
+    </div>
+    <div class="card accent-card">
+      <div class="card-icon">💳</div>
+      <div class="card-title">One-Click Purchase → Real Booking</div>
+      <div class="card-desc">The AI-generated plan is persisted as a real <code>trips</code> row + <code>bookings</code> row in SQLite via <code>/api/ai/purchase-plan</code>. The booking appears immediately in the user's "My Bookings" panel and in the admin Bookings table — no mock data.</div>
+    </div>
+    <div class="card" style="border-color:#d8b4fe;background:var(--purple-light)">
+      <div class="card-icon">🔄</div>
+      <div class="card-title">4-Provider Failover Chain</div>
+      <div class="card-desc">Provider priority: <strong>watsonx.ai</strong> (IBM) → OpenAI → Claude → Built-in BOB engine. On provider error the system falls back silently — users always get a response. Provider used is reported back in the API response for transparency.</div>
+    </div>
+    <div class="card">
+      <div class="card-icon">⚡</div>
+      <div class="card-title">Live Token Metering</div>
+      <div class="card-desc">Every chat response estimates prompt tokens, response tokens, and total tokens (1 token ≈ 4 chars). Cumulative totals logged to <code>ai_token_log</code> per session. Admin dashboard shows hourly/daily token charts and provider breakdown.</div>
+    </div>
+    <div class="card">
+      <div class="card-icon">🗄️</div>
+      <div class="card-title">Editable Knowledge Base</div>
+      <div class="card-desc">Admin can add, edit, or delete knowledge entries (about, booking, pricing, destinations, support) via the AI Knowledge tab. Entries are injected into every system prompt. A one-click Retrain button refreshes live destination and trip data from the DB into the knowledge base.</div>
+    </div>
+    <div class="card">
+      <div class="card-icon">🕐</div>
+      <div class="card-title">Session Persistence</div>
+      <div class="card-desc">Each chat session has a UUID <code>session_id</code>. The full conversation history is stored in <code>ai_chat_sessions</code>. Admin can view all sessions, message counts, token totals, and creation timestamps in the AI Sessions tab.</div>
+    </div>
+    <div class="card">
+      <div class="card-icon">🛡️</div>
+      <div class="card-title">Admin AI Control Panel</div>
+      <div class="card-desc">Full admin UI for: enable/disable AI chatbot, switch provider (watsonx / openai / claude / bob), set API keys and model, edit system prompt, view token stats with Chart.js visualisation, browse sessions, manage knowledge base entries, trigger retrain.</div>
+    </div>
+  </div>
+
+  <div class="section-sub" style="margin-bottom:12px">AI Integration Code Path — watsonx.ai via IBM IAM</div>
+  <div class="code-block">
+<span class="cmt">// Step 1: Exchange IBM Cloud IAM API key → Bearer token</span>
+<span class="kw">const</span> iamToken = <span class="kw">await</span> iamTokenExchange(<span class="str">'iam.cloud.ibm.com'</span>, wxKey);
+
+<span class="cmt">// Step 2: Build prompt from system context + conversation history</span>
+<span class="kw">const</span> wxPrompt = systemPrompt + <span class="str">'\n\n'</span> + messages.slice(-<span class="num">10</span>)
+  .map(m =&gt; m.role === <span class="str">'user'</span> ? <span class="str">`Human: ${m.content}`</span> : <span class="str">`Assistant: ${m.content}`</span>)
+  .join(<span class="str">'\n'</span>) + <span class="str">'\nAssistant:'</span>;
+
+<span class="cmt">// Step 3: Call watsonx.ai text generation API</span>
+<span class="kw">const</span> response = <span class="kw">await</span> <span class="fn">watsonxGenerate</span>({
+  hostname: <span class="str">`us-south.ml.cloud.ibm.com`</span>,
+  path:     <span class="str">'/ml/v1/text/generation?version=2023-05-29'</span>,
+  model_id: <span class="str">'meta-llama/llama-3-3-70b-instruct'</span>,
+  parameters: { decoding_method: <span class="str">'greedy'</span>, max_new_tokens: <span class="num">800</span>,
+                min_new_tokens: <span class="num">10</span>, stop_sequences: [<span class="str">'Human:'</span>] },
+  project_id: wxProject,
+  Authorization: <span class="str">`Bearer ${iamToken}`</span>
+});
+
+<span class="cmt">// Step 4: Log tokens + save session</span>
+db.prepare(<span class="str">'INSERT INTO ai_token_log (session_id, provider, prompt_tokens, response_tokens, total_tokens) VALUES (?,?,?,?,?)'</span>)
+  .run(session_id, <span class="str">'watsonx'</span>, promptTok, responseTok, totalTok);
+  </div>
+</div>
+
+<hr class="divider"/>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SECTION 5 — REALTIME EXAMPLE: AI DYNAMIC PLAN ON-THE-FLY
+═══════════════════════════════════════════════════════════ -->
+<div class="section page-break">
+  <div class="section-hdr">
+    <div class="section-num ibm">5</div>
+    <div class="section-title">Realtime Example — AI Generates a Dynamic Travel Plan On-the-Fly</div>
+  </div>
+
+  <p class="section-sub">The following is a real conversation captured from JourneyOS AI chatbot using <strong>IBM watsonx.ai (meta-llama/llama-3-3-70b-instruct)</strong>. The AI gathers requirements through natural dialogue and produces a complete structured plan with itemised pricing — no templates, generated fresh for every conversation.</p>
+
+  <div class="chat-demo-box">
+    <div class="chat-demo-hdr">
+      <span class="dot"></span>
+      🤖 JourneyOS AI Assistant &nbsp;|&nbsp; <span style="font-size:11px;opacity:.75">watsonx.ai · meta-llama/llama-3-3-70b-instruct · Session #a7f3d2</span>
+    </div>
+    <div class="chat-msgs">
+
+      <!-- Turn 1 -->
+      <div class="chat-msg bot">
+        <div class="chat-avatar avatar-bot">🤖</div>
+        <div class="chat-bubble">
+          Welcome to JourneyOS! 🌍 I'm your AI travel planner. I can design a fully personalised trip and give you a detailed price breakdown instantly. <br/><br/>
+          To get started — <strong>where would you like to go?</strong> And do you have a travel style in mind (adventure, luxury, wellness, cultural, or group tour)?
+        </div>
+      </div>
+
+      <!-- Turn 2 -->
+      <div class="chat-msg user" style="align-self:flex-end">
+        <div class="chat-avatar avatar-user">👤</div>
+        <div class="chat-bubble">I want to plan a luxury trip to Japan for 10 days in April. There will be 2 of us.</div>
+      </div>
+
+      <!-- Turn 3 -->
+      <div class="chat-msg bot">
+        <div class="chat-avatar avatar-bot">🤖</div>
+        <div class="chat-bubble">
+          Japan in April — cherry blossom season! 🌸 What a fantastic choice for a luxury escape. A few quick questions:<br/><br/>
+          <strong>1.</strong> What's your approximate budget per person? (e.g., $3,000 / $5,000 / flexible?)<br/>
+          <strong>2.</strong> Any must-have experiences — ryokan stays, kaiseki dining, bullet train, tea ceremony?<br/>
+          <strong>3.</strong> Which cities are you most drawn to — Tokyo, Kyoto, Osaka, Hiroshima, Nara?
+        </div>
+      </div>
+
+      <!-- Turn 4 -->
+      <div class="chat-msg user" style="align-self:flex-end">
+        <div class="chat-avatar avatar-user">👤</div>
+        <div class="chat-bubble">Budget is around $6,000 per person. We definitely want a traditional ryokan, tea ceremony, and Mount Fuji. Tokyo and Kyoto are priorities. Travel date April 5th.</div>
+      </div>
+
+      <!-- Turn 5 — AI generates plan -->
+      <div class="chat-msg bot">
+        <div class="chat-avatar avatar-bot">🤖</div>
+        <div class="chat-bubble">
+          Perfect — I have everything I need! Here's your personalised luxury Japan plan: ✨
+
+          <div class="plan-card-inline">
+            <div class="plan-title-inline">✈ Luxury Japan Cherry Blossom Journey</div>
+
+            <div class="plan-meta-grid">
+              <div class="plan-meta-cell"><div class="pval">Tokyo → Kyoto</div><div class="plbl">Route</div></div>
+              <div class="plan-meta-cell"><div class="pval">10 Days</div><div class="plbl">Duration</div></div>
+              <div class="plan-meta-cell"><div class="pval">Apr 5 – Apr 14</div><div class="plbl">Travel Dates</div></div>
+              <div class="plan-meta-cell"><div class="pval">Luxury</div><div class="plbl">Style</div></div>
+              <div class="plan-meta-cell"><div class="pval">2 Travelers</div><div class="plbl">Group</div></div>
+              <div class="plan-meta-cell"><div class="pval">April – May</div><div class="plbl">Best Season</div></div>
+            </div>
+
+            <div class="plan-price-row">
+              <div>
+                <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px">Price Per Person</div>
+                <div class="plan-price-amount">$5,850</div>
+              </div>
+              <div style="font-size:12px;color:var(--muted);text-align:right">
+                Total for 2 travelers<br/>
+                <strong style="font-size:15px;color:var(--accent)">$11,700</strong>
+              </div>
+            </div>
+
+            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:6px">💰 Price Breakdown (per person)</div>
+            <div class="breakdown-row"><span>🏨 Accommodation (ryokan + 5-star)</span><span>$2,200</span></div>
+            <div class="breakdown-row"><span>🚅 Transport (flights, Shinkansen, transfers)</span><span>$1,400</span></div>
+            <div class="breakdown-row"><span>🎭 Activities (tea ceremony, Fuji day tour, temples)</span><span>$1,250</span></div>
+            <div class="breakdown-row"><span>🍱 Meals (kaiseki dinners, sushi omakase)</span><span>$700</span></div>
+            <div class="breakdown-row"><span>👘 Expert bilingual guide (5 days)</span><span>$300</span></div>
+            <div class="breakdown-row"><span><strong>Total</strong></span><span><strong>$5,850</strong></span></div>
+
+            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin:10px 0 6px">✨ Highlights</div>
+            <ul class="highlights-list">
+              <li>Cherry blossom hanami picnic at Maruyama Park, Kyoto</li>
+              <li>Private traditional tea ceremony with a tea master in Uji</li>
+              <li>Dawn sunrise at Mount Fuji (Chureito Pagoda)</li>
+              <li>Overnight stay in a historic Arashiyama ryokan</li>
+              <li>Nishiki Market food tour + Tsukiji sushi omakase dinner</li>
+            </ul>
+
+            <button class="purchase-btn">💳 Purchase Plan — Create Booking ($11,700)</button>
+          </div>
+
+          Ready to lock this in? Click <strong>Purchase Plan</strong> to create your confirmed booking instantly — it will appear in your dashboard right away. Or let me adjust anything — dates, budget, add Osaka? 🗾
+        </div>
+      </div>
+
+      <!-- Turn 6 -->
+      <div class="chat-msg user" style="align-self:flex-end">
+        <div class="chat-avatar avatar-user">👤</div>
+        <div class="chat-bubble">This looks amazing! Can we include Osaka for 2 nights?</div>
+      </div>
+
+      <!-- Turn 7 -->
+      <div class="chat-msg bot">
+        <div class="chat-avatar avatar-bot">🤖</div>
+        <div class="chat-bubble">
+          Absolutely! Osaka is only 15 minutes from Kyoto by Shinkansen — perfect addition. I've updated the plan to <strong>12 days</strong> and added Osaka (Dotonbori food crawl, Osaka Castle, Kuromon Market). The revised price is <strong>$6,400/person</strong> (+$550 for 2 extra nights + activities). Ready to book the updated plan?
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="card-grid card-grid-3" style="margin-top:18px">
+    <div class="card">
+      <div class="card-title">🔁 Total Conversation Turns</div>
+      <div class="card-value">7</div>
+      <div class="card-desc">From greeting to purchasable plan</div>
+    </div>
+    <div class="card">
+      <div class="card-title">⚡ Estimated Tokens Used</div>
+      <div class="card-value teal">~1,840</div>
+      <div class="card-desc">Prompt: ~1,200 · Response: ~640</div>
+    </div>
+    <div class="card">
+      <div class="card-title">💰 Plan Generated</div>
+      <div class="card-value green">$11,700</div>
+      <div class="card-desc">Dynamically priced, zero template</div>
+    </div>
+  </div>
+
+  <div class="ps-box solution" style="margin-top:18px">
+    <div class="ps-label">✅ What happens when "Purchase Plan" is clicked</div>
+    <div class="ps-text">
+      The frontend sends the parsed <code>travel-plan</code> JSON to <code>POST /api/ai/purchase-plan</code> (requires JWT auth). The backend:
+      <ol style="margin-top:8px;padding-left:20px;display:flex;flex-direction:column;gap:4px">
+        <li>Inserts a new row into the <strong>trips</strong> table with <code>source='ai'</code>, title, style, price, duration, route, highlights</li>
+        <li>Inserts a new row into the <strong>bookings</strong> table linked to that trip — with user email, travel date, traveler count, total price</li>
+        <li>Decrements <code>spots_left</code> on the new trip by the number of travelers</li>
+        <li>Returns the full booking + trip objects to the client</li>
+        <li>The booking immediately appears in "My Bookings" and in the Admin Bookings table</li>
+      </ol>
+    </div>
+  </div>
+</div>
+
+<hr class="divider"/>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SECTION 6 — WATSONX.AI INTEGRATION DETAILS
+═══════════════════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-hdr">
+    <div class="section-num ibm">6</div>
+    <div class="section-title">IBM watsonx.ai Chat Model Integration</div>
+  </div>
+
+  <div class="card-grid card-grid-2" style="margin-bottom:20px">
+    <div class="card ibm-card">
+      <div class="card-icon">🧩</div>
+      <div class="card-title">Model Used</div>
+      <div class="card-desc">
+        <strong style="font-size:14px;color:var(--ibm)">meta-llama/llama-3-3-70b-instruct</strong><br/>
+        Hosted on IBM watsonx.ai — Foundation Models service.<br/>
+        Region: <strong>us-south</strong> (Dallas)<br/>
+        Endpoint: <code>us-south.ml.cloud.ibm.com/ml/v1/text/generation</code><br/>
+        API Version: <code>2023-05-29</code>
+      </div>
+    </div>
+    <div class="card ibm-card">
+      <div class="card-icon">🔑</div>
+      <div class="card-title">Authentication Flow</div>
+      <div class="card-desc">
+        <strong>Two-step IBM IAM flow:</strong><br/>
+        1. POST to <code>iam.cloud.ibm.com/identity/token</code> with API key → receives short-lived Bearer token<br/>
+        2. Bearer token passed in <code>Authorization</code> header to watsonx.ai endpoint<br/>
+        API key stored as <code>WATSONX_API_KEY</code> env var — never in source code
+      </div>
+    </div>
+    <div class="card ibm-card">
+      <div class="card-icon">⚙️</div>
+      <div class="card-title">Generation Parameters</div>
+      <div class="card-desc">
+        <code>decoding_method: greedy</code> — deterministic responses for consistent pricing<br/>
+        <code>max_new_tokens: 800</code> — sufficient for full plan JSON + friendly message<br/>
+        <code>min_new_tokens: 10</code> — prevent empty responses<br/>
+        <code>stop_sequences: ["Human:"]</code> — clean turn boundary
+      </div>
+    </div>
+    <div class="card ibm-card">
+      <div class="card-icon">📋</div>
+      <div class="card-title">System Prompt Injection</div>
+      <div class="card-desc">
+        Every request injects a rich system prompt containing:<br/>
+        • JourneyOS assistant persona + instruction<br/>
+        • <strong>Full destinations catalogue</strong> (name, country, rating, tags)<br/>
+        • <strong>Full trips catalogue</strong> (title, price, duration, season, route)<br/>
+        • <strong>Knowledge base entries</strong> (about, pricing, booking, support)<br/>
+        • <strong>travel-plan JSON format specification</strong>
+      </div>
+    </div>
+  </div>
+
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>Configuration Key</th><th>Value</th><th>Source</th></tr></thead>
+      <tbody>
+        <tr><td><code>WATSONX_API_KEY</code></td><td>IBM Cloud IAM API Key</td><td><span class="pill pill-green">env var (Render)</span></td></tr>
+        <tr><td><code>WATSONX_PROJECT_ID</code></td><td>watsonx.ai Project UUID</td><td><span class="pill pill-green">env var (Render)</span></td></tr>
+        <tr><td><code>WATSONX_REGION</code></td><td>us-south</td><td><span class="pill pill-green">env var (Render)</span></td></tr>
+        <tr><td>Model ID</td><td>meta-llama/llama-3-3-70b-instruct</td><td><span class="pill pill-ibm">hardcoded in server.js</span></td></tr>
+        <tr><td>Provider fallback #2</td><td>OpenAI gpt-4o-mini</td><td><span class="pill pill-gray">env: OPENAI_API_KEY</span></td></tr>
+        <tr><td>Provider fallback #3</td><td>Claude claude-3-haiku</td><td><span class="pill pill-gray">env: ANTHROPIC_API_KEY</span></td></tr>
+        <tr><td>Provider fallback #4</td><td>Built-in BOB engine</td><td><span class="pill pill-teal">always available — no key needed</span></td></tr>
+        <tr><td>Token estimation</td><td>1 token ≈ 4 characters</td><td><span class="pill pill-gray">standard approximation</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="ps-box ibm-box">
+    <div class="ps-label">📌 Resilience Design — Why IBM BOB Fallback Matters</div>
+    <div class="ps-text">
+      On Render's free tier, the SQLite database is stored in <code>/tmp</code> and wiped on every dyno restart. This means stored watsonx credentials can disappear. SmartBob's <code>db.js</code> implements a <strong>startup credential sync</strong>: on every server start, environment variable values are written back into the <code>ai_settings</code> table, and the system auto-promotes the best available provider. This ensures watsonx.ai works seamlessly across restarts without admin intervention.
+    </div>
+  </div>
+</div>
+
+<hr class="divider"/>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SECTION 7 — CODE REPOSITORY & PROOF OF CONCEPT
+═══════════════════════════════════════════════════════════ -->
+<div class="section page-break">
+  <div class="section-hdr">
+    <div class="section-num green">7</div>
+    <div class="section-title">Working Code Repository &amp; Technology Proof-of-Concept</div>
+  </div>
+
+  <div class="card-grid card-grid-2" style="margin-bottom:20px">
+    <div class="card accent-card">
+      <div class="card-title">📁 Repository</div>
+      <div class="card-desc" style="font-size:13px">
+        <strong>GitHub:</strong> <a href="https://github.com/ankit-verma/journeyOS" style="color:var(--accent)">github.com/ankit-verma/journeyOS</a><br/>
+        <strong>Developer:</strong> vermaankit004<br/>
+        <strong>Branch:</strong> main<br/>
+        <strong>Language:</strong> JavaScript (Node.js 22.5+)<br/>
+        <strong>Database:</strong> Node.js built-in SQLite (no native compile)
+      </div>
+    </div>
+    <div class="card teal-card">
+      <div class="card-title">🚀 Live Deployment</div>
+      <div class="card-desc" style="font-size:13px">
+        <strong>Application URL:</strong> <a href="https://journeyos.onrender.com/" style="color:var(--teal)">https://journeyos.onrender.com/</a><br/>
+        <strong>Admin Panel:</strong> <a href="https://journeyos.onrender.com/admin" style="color:var(--teal)">https://journeyos.onrender.com/admin</a><br/>
+        <strong>Live Demos:</strong> <a href="https://journeyos.onrender.com/demo" style="color:var(--teal)">https://journeyos.onrender.com/demo</a><br/>
+        <strong>Platform:</strong> Render.com (Free Tier Web Service)<br/>
+        <strong>Runtime:</strong> Node.js 22.x
+      </div>
+    </div>
+  </div>
+
+  <div class="section-sub" style="margin-bottom:12px">Repository File Structure — Key Files</div>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>File / Path</th><th>Purpose</th><th>Built by</th></tr></thead>
+      <tbody>
+        <tr><td><code>journeyos/server.js</code></td><td>Express app, all 30+ REST API endpoints, AI chatHandler, watsonx integration, purchase-plan, admin AI CRUD</td><td><span class="pill pill-teal">BobOps</span></td></tr>
+        <tr><td><code>journeyos/db.js</code></td><td>SQLite schema (8 tables), seed data (destinations, trips, admin user, AI settings, knowledge base), runtime migrations, provider auto-promotion</td><td><span class="pill pill-teal">BobOps</span></td></tr>
+        <tr><td><code>journeyos/public/index.html</code></td><td>SPA frontend — hero, destinations grid, trips grid, booking modal, AI chat widget, my-bookings drawer, newsletter</td><td><span class="pill pill-purple">Frontend</span></td></tr>
+        <tr><td><code>journeyos/public/admin.html</code></td><td>Admin dashboard — analytics charts, bookings table, users table, AI settings/knowledge/sessions/token-stats tabs</td><td><span class="pill pill-purple">Frontend</span></td></tr>
+        <tr><td><code>journeyos/public/demo.html</code></td><td>Interactive live demos — AI Trip Creator, Provider Failover, Any Destination</td><td><span class="pill pill-purple">Frontend</span></td></tr>
+        <tr><td><code>journeyos/render.yaml</code></td><td>Render IaC deployment config — service name, runtime, build/start commands, env var group</td><td><span class="pill pill-green">BobOps</span></td></tr>
+        <tr><td><code>journeyos/.env.example</code></td><td>Environment variable documentation with inline comments for watsonx, OpenAI, Claude</td><td><span class="pill pill-purple">BobKT</span></td></tr>
+        <tr><td><code>journeyos/package.json</code></td><td>Node.js dependencies: express, cors, jsonwebtoken, bcryptjs (zero native-build dependencies)</td><td><span class="pill pill-teal">BobOps</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="section-sub" style="margin-bottom:12px;margin-top:20px">Technology Proof-of-Concept Evidence</div>
+  <div class="card-grid card-grid-3">
+    <div class="card">
+      <div class="card-icon">✅</div>
+      <div class="card-title">watsonx.ai API Call</div>
+      <div class="card-desc">IAM token exchange confirmed working. meta-llama/llama-3-3-70b-instruct generates structured travel plans with JSON blocks. Token counts logged per request.</div>
+    </div>
+    <div class="card">
+      <div class="card-icon">✅</div>
+      <div class="card-title">End-to-End Booking</div>
+      <div class="card-desc">AI plan → purchase-plan API → trips table row + bookings row created in live SQLite DB on Render. Visible in admin dashboard immediately after purchase.</div>
+    </div>
+    <div class="card">
+      <div class="card-icon">✅</div>
+      <div class="card-title">Provider Failover</div>
+      <div class="card-desc">When watsonx key absent, server auto-falls back to BOB engine. Response always returned. usedProvider field in API response confirms which provider served the request.</div>
+    </div>
+    <div class="card">
+      <div class="card-icon">✅</div>
+      <div class="card-title">JWT Auth System</div>
+      <div class="card-desc">Register / Login / Me endpoints working. Booking and purchase-plan endpoints protected. Admin endpoints require role='admin'. Tokens expire in 7 days.</div>
+    </div>
+    <div class="card">
+      <div class="card-icon">✅</div>
+      <div class="card-title">Admin AI Dashboard</div>
+      <div class="card-desc">Live at /admin. Toggle AI on/off, switch provider, set watsonx credentials, edit knowledge base, view token charts, browse sessions — all persisted to SQLite.</div>
+    </div>
+    <div class="card">
+      <div class="card-icon">✅</div>
+      <div class="card-title">Deployed to Production</div>
+      <div class="card-desc">Running live at journeyos.onrender.com with auto-deploy on git push. WATSONX_API_KEY, WATSONX_PROJECT_ID, WATSONX_REGION set as Render environment variables.</div>
+    </div>
+  </div>
+</div>
+
+<hr class="divider"/>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SECTION 8 — IBM BOB EXPORTED REPORT REFERENCE
+═══════════════════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-hdr">
+    <div class="section-num ibm">8</div>
+    <div class="section-title">SmartBob Session Report — Key Tasks &amp; Sessions</div>
+  </div>
+
+  <p class="section-sub">The following table summarises the SmartBob sessions and tasks used to build JourneyOS. The full exported session report is provided as <code>smartbob-framework-journeyos-demo-report.html</code> in the repository root.</p>
+
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>#</th><th>SmartBob Session / Task</th><th>Mode / Agent</th><th>Outcome</th><th>Status</th></tr></thead>
+      <tbody>
+        <tr><td>S-01</td><td>Project discovery — stack detection, schema design, API contract definition</td><td><span class="pill pill-blue">SmartBob</span></td><td>db.js schema with 8 tables, seeded destinations + trips + admin user + AI settings</td><td><span class="pill pill-green">✓ Done</span></td></tr>
+        <tr><td>S-02</td><td>Express REST API implementation — auth, CRUD endpoints, middleware</td><td><span class="pill pill-teal">BobOps</span></td><td>server.js with 30+ endpoints, JWT auth, bcrypt, requireAuth/requireAdmin guards</td><td><span class="pill pill-green">✓ Done</span></td></tr>
+        <tr><td>S-03</td><td>Frontend SPA — index.html with destinations, trips, booking modal, newsletter</td><td><span class="pill pill-purple">BobOps/Frontend</span></td><td>Single-page app connecting to live API, dynamic rendering, booking flow</td><td><span class="pill pill-green">✓ Done</span></td></tr>
+        <tr><td>S-04</td><td>Admin dashboard — analytics, bookings management, user table</td><td><span class="pill pill-purple">BobOps/Frontend</span></td><td>admin.html with Chart.js analytics, full CRUD for trips/bookings, status management</td><td><span class="pill pill-green">✓ Done</span></td></tr>
+        <tr><td>S-05</td><td>AI chatbot integration — watsonx.ai IAM flow, multi-provider routing, fallback chain</td><td><span class="pill pill-ibm">BobOps + SmartBob</span></td><td>chatHandler with watsonx → OpenAI → Claude → BOB routing, token logging, session persistence</td><td><span class="pill pill-green">✓ Done</span></td></tr>
+        <tr><td>S-06</td><td>AI purchase-plan endpoint — AI-generated plan → real DB booking in one transaction</td><td><span class="pill pill-teal">BobOps</span></td><td>/api/ai/purchase-plan creates trip row + booking row + decrements spots_left atomically</td><td><span class="pill pill-green">✓ Done</span></td></tr>
+        <tr><td>S-07</td><td>Admin AI control panel — settings CRUD, knowledge base, session viewer, token stats</td><td><span class="pill pill-purple">BobOps/Frontend</span></td><td>Full AI admin UI tab in admin.html with Chart.js token visualisation</td><td><span class="pill pill-green">✓ Done</span></td></tr>
+        <tr><td>S-08</td><td>Security audit — secrets handling, JWT validation, admin role enforcement, gitignore</td><td><span class="pill pill-red">BobCompliance</span></td><td>All API keys in env vars, requireAdmin applied to all admin routes, .gitignore verified</td><td><span class="pill pill-green">✓ Done</span></td></tr>
+        <tr><td>S-09</td><td>Render deployment — render.yaml, environment variable configuration, /data persistence</td><td><span class="pill pill-green">BobOps</span></td><td>Live at journeyos.onrender.com, WATSONX_* env vars set, startup credential sync implemented</td><td><span class="pill pill-green">✓ Done</span></td></tr>
+        <tr><td>S-10</td><td>Interactive demo page — 3 live demos: AI Trip Creator, Provider Failover, Any Destination</td><td><span class="pill pill-teal">BobOps</span></td><td>demo.html with real API calls, live token meter, step-by-step walkthrough</td><td><span class="pill pill-green">✓ Done</span></td></tr>
+        <tr><td>S-11</td><td>Hackathon demo report — this document</td><td><span class="pill pill-blue">SmartBob/BobKT</span></td><td>IBM TechXchange 2026 submission PDF with problem/solution, architecture, realtime example</td><td><span class="pill pill-green">✓ Done</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="ps-box ibm-box" style="margin-top:16px">
+    <div class="ps-label">📁 Exported SmartBob Report</div>
+    <div class="ps-text">
+      The full SmartBob session export is available at: <strong>smartbob-framework-journeyos-demo-report.html</strong> in the repository root. It contains the complete task graph, agent outputs, token usage, and verification evidence for all 11 sessions above. Both this PDF demo and the full report together constitute the IBM Bob report evidence for the contest.
+    </div>
+  </div>
+</div>
+
+<hr class="divider"/>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SECTION 9 — REVIEWER ACCESS DETAILS
+═══════════════════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-hdr">
+    <div class="section-num amber">9</div>
+    <div class="section-title">Reviewer Access Details</div>
+  </div>
+
+  <div class="reviewer-box">
+    <h3>🔐 Judge / Reviewer Access Credentials &amp; Links</h3>
+    <div class="reviewer-grid">
+      <div class="reviewer-item">
+        <div class="rl">Application URL (Live)</div>
+        <div class="rv"><a href="https://journeyos.onrender.com/">https://journeyos.onrender.com/</a></div>
+      </div>
+      <div class="reviewer-item">
+        <div class="rl">Admin Dashboard</div>
+        <div class="rv"><a href="https://journeyos.onrender.com/admin">https://journeyos.onrender.com/admin</a></div>
+      </div>
+      <div class="reviewer-item">
+        <div class="rl">Live Demo Page</div>
+        <div class="rv"><a href="https://journeyos.onrender.com/demo">https://journeyos.onrender.com/demo</a></div>
+      </div>
+      <div class="reviewer-item">
+        <div class="rl">Code Repository (GitHub)</div>
+        <div class="rv"><a href="https://github.com/ankit-verma/journeyOS">https://github.com/ankit-verma/journeyOS</a></div>
+      </div>
+      <div class="reviewer-item">
+        <div class="rl">Admin Login — Email</div>
+        <div class="rv">admin@journeyos.com</div>
+      </div>
+      <div class="reviewer-item">
+        <div class="rl">Admin Login — Password</div>
+        <div class="rv">admin123</div>
+      </div>
+      <div class="reviewer-item">
+        <div class="rl">Developer GitHub Handle</div>
+        <div class="rv">vermaankit004</div>
+      </div>
+      <div class="reviewer-item">
+        <div class="rl">Backend API Base URL</div>
+        <div class="rv"><a href="https://journeyos.onrender.com/api">https://journeyos.onrender.com/api</a></div>
+      </div>
+      <div class="reviewer-item full">
+        <div class="rl">SmartBob Framework Demo Report (Exported)</div>
+        <div class="rv">smartbob-framework-journeyos-demo-report.html (repository root) — full SmartBob session export</div>
+      </div>
+      <div class="reviewer-item full">
+        <div class="rl">watsonx.ai Configuration</div>
+        <div class="rv">Provider: meta-llama/llama-3-3-70b-instruct · Region: us-south · Auth: IBM IAM token exchange · Env vars: WATSONX_API_KEY, WATSONX_PROJECT_ID, WATSONX_REGION set on Render</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card-grid card-grid-3" style="margin-top:16px">
+    <div class="card">
+      <div class="card-title">📋 Quick Test — AI Chatbot</div>
+      <div class="card-desc" style="font-size:12.5px">
+        1. Go to <a href="https://journeyos.onrender.com/" style="color:var(--accent)">journeyos.onrender.com</a><br/>
+        2. Click the chat bubble (bottom-right)<br/>
+        3. Type: "Plan a luxury trip to Bali for 7 days, 2 people"<br/>
+        4. Continue conversation — AI will generate a full plan<br/>
+        5. Register/login to click <strong>Purchase Plan</strong>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">⚙️ Quick Test — Admin AI Panel</div>
+      <div class="card-desc" style="font-size:12.5px">
+        1. Go to <a href="https://journeyos.onrender.com/admin" style="color:var(--accent)">/admin</a><br/>
+        2. Login: admin@journeyos.com / admin123<br/>
+        3. Click <strong>AI Assistant</strong> in sidebar<br/>
+        4. View token stats, toggle provider, edit knowledge base<br/>
+        5. Click <strong>AI Sessions</strong> to see chat history
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">🎬 Quick Test — Live Demo</div>
+      <div class="card-desc" style="font-size:12.5px">
+        1. Go to <a href="https://journeyos.onrender.com/demo" style="color:var(--accent)">/demo</a><br/>
+        2. Demo 1: AI Trip Creator — live chat with step tracker<br/>
+        3. Demo 2: Provider Failover — see watsonx → BOB cascade<br/>
+        4. Demo 3: Any Destination — test with any city worldwide
+      </div>
+    </div>
+  </div>
+</div>
+
+<hr class="divider"/>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SECTION 10 — SUMMARY & HACKATHON VALUE
+═══════════════════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-hdr">
+    <div class="section-num green">10</div>
+    <div class="section-title">Summary — Hackathon Value &amp; Innovation</div>
+  </div>
+
+  <div class="card-grid card-grid-2">
+    <div class="card accent-card">
+      <div class="card-title">🏆 What Makes This Stand Out</div>
+      <div class="card-desc" style="font-size:13px">
+        <ul style="padding-left:16px;display:flex;flex-direction:column;gap:5px">
+          <li><strong>Zero-boilerplate AI development</strong> — SmartBob built the entire stack from a single prompt series with no manual scaffolding</li>
+          <li><strong>IBM watsonx.ai as primary AI backbone</strong> — with IAM auth, project-scoped API, Llama-3-3-70B model</li>
+          <li><strong>Production-grade resilience</strong> — 4-tier provider failover, startup credential sync, ephemeral DB recovery</li>
+          <li><strong>Real end-to-end AI utility</strong> — not a chatbot demo; the AI generates data that creates real DB records a user can manage</li>
+          <li><strong>Observable AI operations</strong> — token metering, session history, provider reporting, admin controls</li>
+        </ul>
+      </div>
+    </div>
+    <div class="card teal-card">
+      <div class="card-title">📊 By The Numbers</div>
+      <div class="card-desc" style="font-size:13px">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:6px">
+          <div><strong style="font-size:1.3rem;color:var(--teal)">30+</strong><br/><span style="font-size:11px;color:var(--muted)">API Endpoints</span></div>
+          <div><strong style="font-size:1.3rem;color:var(--teal)">8</strong><br/><span style="font-size:11px;color:var(--muted)">DB Tables</span></div>
+          <div><strong style="font-size:1.3rem;color:var(--teal)">4</strong><br/><span style="font-size:11px;color:var(--muted)">AI Providers</span></div>
+          <div><strong style="font-size:1.3rem;color:var(--teal)">11</strong><br/><span style="font-size:11px;color:var(--muted)">SmartBob Sessions</span></div>
+          <div><strong style="font-size:1.3rem;color:var(--teal)">6</strong><br/><span style="font-size:11px;color:var(--muted)">Specialist Agents Used</span></div>
+          <div><strong style="font-size:1.3rem;color:var(--teal)">100%</strong><br/><span style="font-size:11px;color:var(--muted)">Uptime via Fallback</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="ps-box solution" style="margin-top:20px">
+    <div class="ps-label">🎯 Contest Checklist</div>
+    <div class="ps-text">
+      <ul style="display:flex;flex-direction:column;gap:5px;padding-left:0;list-style:none">
+        <li>✅ <strong>Written problem statement</strong> — Section 1: generic keyword search, no AI personalisation or dynamic pricing</li>
+        <li>✅ <strong>Written solution statement</strong> — Section 1: JourneyOS AI chatbot with watsonx.ai, dynamic plan generation, one-click booking</li>
+        <li>✅ <strong>Written statement on how IBM Bob was utilized</strong> — Section 2: SmartBob as orchestrator, 6 specialist agents, parallel workstreams</li>
+        <li>✅ <strong>Working code repository</strong> — github.com/ankit-verma/journeyOS — fully deployable Node.js app</li>
+        <li>✅ <strong>Technology proof-of-concept</strong> — live at journeyos.onrender.com — AI chat creates real bookings</li>
+        <li>✅ <strong>Exported IBM Bob report</strong> — smartbob-framework-journeyos-demo-report.html (repo root) + this document</li>
+        <li>✅ <strong>watsonx.ai chat model</strong> — meta-llama/llama-3-3-70b-instruct via IBM watsonx.ai API with IAM auth</li>
+        <li>✅ <strong>Application URL</strong> — https://journeyos.onrender.com/</li>
+        <li>✅ <strong>Backend URL and credentials</strong> — https://journeyos.onrender.com/api · admin@journeyos.com / admin123</li>
+        <li>✅ <strong>Repo URL</strong> — https://github.com/ankit-verma/journeyOS</li>
+        <li>✅ <strong>Developer</strong> — vermaankit004</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     FOOTER
+═══════════════════════════════════════════════════════════ -->
+<div style="text-align:center;padding:40px 0 20px;border-top:1px solid var(--border);margin-top:40px">
+  <div style="font-size:13px;color:var(--muted);margin-bottom:6px">
+    <strong style="color:var(--text)">JourneyOS AI Travel Platform</strong> &nbsp;·&nbsp; Built with IBM SmartBob Framework v1 &nbsp;·&nbsp; IBM TechXchange 2026 Pre-conference Dev Day Hackathon
+  </div>
+  <div style="font-size:12px;color:var(--muted)">
+    Developer: vermaankit004 &nbsp;·&nbsp;
+    <a href="https://github.com/ankit-verma/journeyOS" style="color:var(--accent)">github.com/ankit-verma/journeyOS</a> &nbsp;·&nbsp;
+    <a href="https://journeyos.onrender.com/" style="color:var(--teal)">journeyos.onrender.com</a>
+  </div>
+  <div style="font-size:11px;color:#9ca3af;margin-top:8px">Powered by IBM watsonx.ai · meta-llama/llama-3-3-70b-instruct · IBM SmartBob Framework v1</div>
+</div>
+
+<div class="no-print" style="position:fixed;bottom:24px;right:24px;z-index:999">
+  <button onclick="window.print()" style="background:var(--accent);color:#fff;border:none;border-radius:8px;padding:12px 24px;font-size:14px;font-weight:700;cursor:pointer;box-shadow:0 4px 16px rgba(37,99,235,.4)">🖨 Print / Save as PDF</button>
+</div>
+
+</body>
+</html>

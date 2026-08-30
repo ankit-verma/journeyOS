@@ -1,0 +1,47 @@
+﻿# ── Bob / SmartBob ignore file ───────────────────────────────
+# Files and directories that Bob should never read, surface,
+# include in context, or commit to any repository.
+#
+# CRITICAL: IBM Cloud credentials (API keys, passwords, secrets)
+# must NEVER be exposed in your repository. If detected via IBM
+# security monitoring, your IBM Cloud account may be suspended.
+
+# ── Secrets & credentials ─────────────────────────────────────
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+id_rsa
+id_ed25519
+*.secret
+secrets.json
+credentials.json
+
+# ── Runtime database (contains live user data) ───────────────
+*.db
+*.sqlite
+*.sqlite3
+
+# ── Node internals ────────────────────────────────────────────
+node_modules/
+
+# ── Logs ─────────────────────────────────────────────────────
+*.log
+server-out.txt
+server-err.txt
+test-out*.txt
+test-err*.txt
+
+# ── OS / Editor ──────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+.vscode/settings.json
+.idea/
+
+# ── Temp / cache ─────────────────────────────────────────────
+.cache/
+tmp/
+temp/

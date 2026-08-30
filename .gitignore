@@ -1,0 +1,52 @@
+﻿# ── SmartBob Framework v1 — root .gitignore ──────────────────
+#
+# CRITICAL: Never commit IBM Cloud credentials (API keys, passwords,
+# or secrets) to this repository. If detected by IBM security
+# monitoring, your IBM Cloud account may be suspended immediately.
+
+# ── Secrets & credentials ─────────────────────────────────────
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+id_rsa
+id_ed25519
+secrets.json
+credentials.json
+
+# ── Runtime databases ─────────────────────────────────────────
+*.db
+*.sqlite
+*.sqlite3
+
+# ── Node.js ──────────────────────────────────────────────────
+node_modules/
+npm-debug.log*
+
+# ── Bob internal state ───────────────────────────────────────
+# Do not commit Bob session cache or tmp files
+.bob/tmp/
+.bob/cache/
+
+# ── ZIP archives (may contain secrets) ───────────────────────
+*.zip
+
+# ── Log / test output ────────────────────────────────────────
+*.log
+server-out.txt
+server-err.txt
+test-out*.txt
+test-err*.txt
+
+# ── macOS / Windows ──────────────────────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ── Editor ───────────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*~

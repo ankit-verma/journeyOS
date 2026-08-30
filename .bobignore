@@ -1,0 +1,47 @@
+﻿# ── SmartBob Framework v1 — root .bobignore ──────────────────
+# Bob must never read, surface, or commit these files.
+#
+# CRITICAL: IBM Cloud credentials (API keys, passwords, secrets)
+# must NEVER be exposed in any repository or Bob session output.
+
+# ── Secrets & credentials ─────────────────────────────────────
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+id_rsa
+id_ed25519
+secrets.json
+credentials.json
+
+# ── Runtime databases (live user data) ───────────────────────
+*.db
+*.sqlite
+*.sqlite3
+
+# ── Node internals ────────────────────────────────────────────
+node_modules/
+
+# ── Bob internal cache / tmp ──────────────────────────────────
+.bob/tmp/
+.bob/cache/
+
+# ── Archives (may contain credentials) ───────────────────────
+*.zip
+*.tar.gz
+*.tgz
+
+# ── Logs & test output ───────────────────────────────────────
+*.log
+server-out.txt
+server-err.txt
+test-out*.txt
+test-err*.txt
+
+# ── OS / Editor ──────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+.vscode/settings.json
+.idea/
