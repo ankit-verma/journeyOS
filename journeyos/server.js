@@ -15,8 +15,13 @@ app.use(cors());
 app.use(express.json());
 
 // Redirect .html → clean URL (must be before static middleware)
-['admin', 'admin-login', 'privacy', 'terms', 'demo'].forEach(page => {
+['admin', 'admin-login', 'privacy', 'terms', 'demo', 'hackathon'].forEach(page => {
   app.get(`/${page}.html`, (_req, res) => res.redirect(301, `/${page}`));
+});
+
+// Clean URL for hackathon demo page
+app.get('/hackathon', (_req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'hackathon.html'));
 });
 
 app.use(express.static(path.join(__dirname, 'public')));
