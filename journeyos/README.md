@@ -149,6 +149,9 @@ See the full hackathon submission document (PDF-ready):
 
 ## 👤 Developer
 
+- **Name:** Ankit Verma
+- **Email:** [vermaankit004@gmail.com](mailto:vermaankit004@gmail.com)
+- **WhatsApp / Contact:** [+91 94535 02009](https://wa.me/919453502009)
 - **GitHub:** [vermaankit004](https://github.com/vermaankit004)
 - **Repository:** [github.com/ankit-verma/journeyOS](https://github.com/ankit-verma/journeyOS)
 - **Hackathon:** IBM TechXchange 2026 Pre-conference Dev Day Hackathon

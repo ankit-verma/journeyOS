@@ -85,4 +85,4 @@ Open any HTML file in a browser → `Ctrl+P` → **Save as PDF** to generate a P
 
 ---
 
-*Developer: vermaankit004 · Repository: [github.com/ankit-verma/journeyOS](https://github.com/ankit-verma/journeyOS)*
+*Developer: Ankit Verma · vermaankit004@gmail.com · +91 94535 02009 · Repository: [github.com/ankit-verma/journeyOS](https://github.com/ankit-verma/journeyOS)*

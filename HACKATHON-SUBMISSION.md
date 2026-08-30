@@ -1,7 +1,9 @@
 # IBM TechXchange 2026 Hackathon — Submission Checklist
 
 **Project:** JourneyOS AI Travel Platform  
-**Developer:** vermaankit004  
+**Developer:** Ankit Verma
+**Email:** vermaankit004@gmail.com
+**WhatsApp/Contact:** +91 94535 02009
 **Repository:** https://github.com/ankit-verma/journeyOS
 
 ---
