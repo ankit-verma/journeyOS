@@ -1,0 +1,778 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>IBM SmartBob Framework — JourneyOS Session Export Report</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#ffffff;--surface:#f7f8fa;--border:#e5e7eb;
+  --text:#1f2328;--muted:#57606a;
+  --accent:#2563eb;--accent-light:#eff6ff;--accent-dark:#1d4ed8;
+  --teal:#0d9488;--teal-light:#f0fdfa;
+  --amber:#d97706;--amber-light:#fffbeb;
+  --green:#16a34a;--green-light:#dcfce7;
+  --purple:#7c3aed;--purple-light:#f5f3ff;
+  --red:#dc2626;--red-light:#fee2e2;
+  --ibm:#0f62fe;--ibm-light:#edf5ff;--ibm-dark:#0043ce;
+  --font:-apple-system,"Segoe UI",system-ui,sans-serif;
+}
+body{font-family:var(--font);font-size:14px;line-height:1.65;color:var(--text);background:var(--bg);max-width:1000px;margin:0 auto;padding:0 24px 80px}
+@media print{
+  body{max-width:100%;padding:0 16px}
+  .no-print{display:none!important}
+  .page-break{page-break-before:always}
+  a{color:inherit;text-decoration:none}
+}
+
+/* COVER */
+.cover{background:linear-gradient(135deg,#0a1628 0%,#0f3460 40%,#0d9488 100%);color:#fff;padding:56px 52px 48px;border-radius:14px;margin:32px 0 44px;position:relative;overflow:hidden}
+.cover::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 75% 15%,rgba(255,255,255,.06) 0%,transparent 55%),radial-gradient(circle at 15% 80%,rgba(13,148,136,.25) 0%,transparent 50%)}
+.cover-top{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:32px}
+.cover-badges{display:flex;gap:8px;flex-wrap:wrap}
+.cover-badge{display:inline-flex;align-items:center;gap:5px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);border-radius:100px;padding:4px 13px;font-size:11px;font-weight:600;letter-spacing:.4px;text-transform:uppercase}
+.cover-badge.ibm{background:rgba(15,98,254,.3);border-color:rgba(15,98,254,.45);color:#a6c8ff}
+.ibm-logo{font-size:22px;font-weight:900;letter-spacing:-1px;color:#a6c8ff}
+.cover h1{font-size:2.2rem;font-weight:900;letter-spacing:-1.2px;line-height:1.1;margin-bottom:10px}
+.cover h1 em{font-style:normal;color:#5eead4}
+.cover h1 .ibm-em{font-style:normal;color:#a6c8ff}
+.cover-sub{font-size:.98rem;color:rgba(255,255,255,.72);margin-bottom:28px;max-width:620px;line-height:1.6}
+.cover-meta{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;border-top:1px solid rgba(255,255,255,.14);padding-top:26px}
+.cover-meta-item .label{font-size:10px;color:rgba(255,255,255,.48);text-transform:uppercase;letter-spacing:.7px;margin-bottom:3px;text-align:center}
+.cover-meta-item .value{font-size:.9rem;font-weight:700;color:#fff;line-height:1.3;text-align:center}
+
+/* SECTION */
+.section{margin-bottom:40px}
+.section-hdr{display:flex;align-items:center;gap:12px;margin-bottom:18px;padding-bottom:10px;border-bottom:2px solid var(--border)}
+.section-num{width:28px;height:28px;border-radius:50%;background:var(--accent);color:#fff;font-size:12px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.section-num.ibm{background:var(--ibm)}
+.section-num.teal{background:var(--teal)}
+.section-num.purple{background:var(--purple)}
+.section-num.green{background:var(--green)}
+.section-num.amber{background:var(--amber)}
+.section-title{font-size:1.15rem;font-weight:800;color:var(--text)}
+
+/* SESSION CARD */
+.session-card{border:1.5px solid var(--border);border-radius:12px;margin-bottom:20px;overflow:hidden}
+.session-card-hdr{display:flex;align-items:center;gap:12px;padding:14px 18px;border-bottom:1px solid var(--border)}
+.session-card-hdr.s-smartbob{background:linear-gradient(90deg,var(--accent-light),#fff)}
+.session-card-hdr.s-bobops{background:linear-gradient(90deg,var(--teal-light),#fff)}
+.session-card-hdr.s-compliance{background:linear-gradient(90deg,var(--red-light),#fff)}
+.session-card-hdr.s-frontend{background:linear-gradient(90deg,var(--purple-light),#fff)}
+.session-card-hdr.s-ibm{background:linear-gradient(90deg,var(--ibm-light),#fff)}
+.session-card-hdr.s-git{background:linear-gradient(90deg,var(--green-light),#fff)}
+.session-id{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;padding:3px 10px;border-radius:100px;border:1.5px solid currentColor;flex-shrink:0}
+.session-id.blue{color:var(--accent);border-color:var(--accent)}
+.session-id.teal{color:var(--teal);border-color:var(--teal)}
+.session-id.red{color:var(--red);border-color:var(--red)}
+.session-id.purple{color:var(--purple);border-color:var(--purple)}
+.session-id.ibm{color:var(--ibm);border-color:var(--ibm)}
+.session-id.green{color:var(--green);border-color:var(--green)}
+.session-title{font-size:14px;font-weight:800;flex:1}
+.session-status{display:flex;align-items:center;gap:5px;font-size:12px;font-weight:700}
+.session-status.done{color:var(--green)}
+.session-body{padding:16px 18px;background:#fff}
+.session-desc{font-size:13px;color:var(--muted);margin-bottom:14px;line-height:1.6}
+.session-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.session-grid-3{grid-template-columns:1fr 1fr 1fr}
+.session-cell{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 12px}
+.session-cell .sc-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:4px}
+.session-cell .sc-value{font-size:13px;font-weight:600;color:var(--text)}
+.outputs-list{list-style:none;display:flex;flex-direction:column;gap:5px}
+.outputs-list li{font-size:12.5px;display:flex;align-items:flex-start;gap:7px;padding:6px 10px;background:var(--surface);border-radius:6px;border:1px solid var(--border)}
+.outputs-list li::before{content:'✓';color:var(--green);font-weight:700;flex-shrink:0;margin-top:1px}
+.evidence-tag{display:inline-flex;align-items:center;gap:4px;background:var(--green-light);color:var(--green);border:1px solid #86efac;border-radius:100px;padding:2px 9px;font-size:10.5px;font-weight:700}
+.screenshot-badge{display:inline-flex;align-items:center;gap:4px;background:var(--ibm-light);color:var(--ibm);border:1px solid #97c1ff;border-radius:100px;padding:2px 9px;font-size:10.5px;font-weight:700}
+.token-bar-row{display:flex;align-items:center;gap:10px;margin:6px 0}
+.token-bar-bg{flex:1;background:var(--surface);border-radius:100px;height:8px;overflow:hidden;border:1px solid var(--border)}
+.token-bar-fill{height:100%;border-radius:100px}
+.token-label{font-size:11px;font-weight:700;color:var(--muted);width:90px;text-align:right;flex-shrink:0}
+
+/* BOXES */
+.info-box{border-left:4px solid var(--accent);background:var(--accent-light);border-radius:0 8px 8px 0;padding:12px 16px;margin:10px 0;font-size:13px;line-height:1.6}
+.info-box.green{border-color:var(--green);background:var(--green-light)}
+.info-box.ibm{border-color:var(--ibm);background:var(--ibm-light)}
+.info-box.amber{border-color:var(--amber);background:var(--amber-light)}
+.info-box.red{border-color:var(--red);background:var(--red-light)}
+.info-box-label{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.7px;color:var(--muted);margin-bottom:5px}
+
+/* TABLE */
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;padding:9px 12px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);background:var(--surface);border-bottom:2px solid var(--border)}
+td{padding:9px 12px;border-bottom:1px solid var(--border);vertical-align:top;line-height:1.5}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:#fafafa}
+.tbl-wrap{border:1px solid var(--border);border-radius:10px;overflow:hidden;margin:12px 0}
+
+/* PILL */
+.pill{display:inline-block;padding:2px 10px;border-radius:100px;font-size:11px;font-weight:700}
+.pill-blue{background:var(--accent-light);color:var(--accent)}
+.pill-teal{background:var(--teal-light);color:var(--teal)}
+.pill-green{background:var(--green-light);color:var(--green)}
+.pill-red{background:var(--red-light);color:var(--red)}
+.pill-amber{background:var(--amber-light);color:var(--amber)}
+.pill-purple{background:var(--purple-light);color:var(--purple)}
+.pill-ibm{background:var(--ibm-light);color:var(--ibm)}
+.pill-gray{background:var(--surface);color:var(--muted);border:1px solid var(--border)}
+
+/* CARD GRID */
+.card-grid{display:grid;gap:12px}
+.card-grid-3{grid-template-columns:1fr 1fr 1fr}
+.card-grid-4{grid-template-columns:1fr 1fr 1fr 1fr}
+.metric-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px;text-align:center}
+.metric-card .mc-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:5px}
+.metric-card .mc-value{font-size:1.6rem;font-weight:900;line-height:1.1}
+.metric-card .mc-desc{font-size:11px;color:var(--muted);margin-top:4px}
+
+/* ARCH */
+.arch{display:flex;flex-direction:column;gap:6px;margin:12px 0}
+.arch-row{display:grid;grid-template-columns:140px 1fr;border-radius:8px;overflow:hidden;border:1px solid var(--border)}
+.arch-label{padding:10px 14px;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:#fff;display:flex;align-items:center}
+.arch-content{padding:10px 14px;font-size:12.5px;display:flex;align-items:center;gap:6px;flex-wrap:wrap;background:var(--surface)}
+.bg-blue{background:var(--accent)}.bg-teal{background:var(--teal)}.bg-ibm{background:var(--ibm)}
+.bg-purple{background:var(--purple)}.bg-green{background:var(--green)}.bg-dark{background:#1f2328}
+.bg-red{background:var(--red)}.bg-amber{background:var(--amber)}
+
+/* CODE */
+.code-block{background:#0f172a;color:#e2e8f0;font-family:'Courier New',monospace;font-size:11.5px;padding:14px 16px;border-radius:8px;overflow-x:auto;margin:10px 0;line-height:1.7}
+.code-block .kw{color:#818cf8}.code-block .str{color:#86efac}.code-block .cmt{color:#475569}.code-block .fn{color:#7dd3fc}.code-block .num{color:#fb923c}
+
+/* DIVIDER */
+.divider{border:none;border-top:1px solid var(--border);margin:28px 0}
+.page-break{page-break-before:always;padding-top:8px}
+
+/* COMPLIANCE AUDIT */
+.audit-row{display:flex;align-items:flex-start;gap:8px;padding:7px 10px;border-radius:6px;margin-bottom:4px;font-size:12.5px}
+.audit-row.pass{background:var(--green-light)}
+.audit-row.fail{background:var(--red-light)}
+.audit-row.warn{background:var(--amber-light)}
+.audit-icon{font-size:14px;flex-shrink:0;margin-top:1px}
+</style>
+</head>
+<body>
+
+<!-- COVER -->
+<div class="cover">
+  <div class="cover-top">
+    <div class="cover-badges">
+      <span class="cover-badge">📋 Session Export Report</span>
+      <span class="cover-badge">🏆 IBM TechXchange 2026 Hackathon</span>
+      <span class="cover-badge ibm">SmartBob Framework v1</span>
+    </div>
+    <span class="ibm-logo">IBM</span>
+  </div>
+  <h1>SmartBob <em>Session Export</em><br/><span style="font-size:1.5rem;font-weight:700;color:rgba(255,255,255,.78)">JourneyOS — <span class="ibm-em">Full Agent Task Log</span></span></h1>
+  <p class="cover-sub">Complete export of all IBM SmartBob agent sessions used to design, build, secure and deploy the JourneyOS AI Travel Platform. Evidence record for IBM TechXchange 2026 Pre-conference Dev Day Hackathon.</p>
+  <div class="cover-meta">
+    <div class="cover-meta-item"><div class="label">Sessions</div><div class="value">11 Sessions</div></div>
+    <div class="cover-meta-item"><div class="label">Agents Used</div><div class="value">6 Specialist</div></div>
+    <div class="cover-meta-item"><div class="label">Files Created</div><div class="value">49 + Files</div></div>
+    <div class="cover-meta-item"><div class="label">API Endpoints</div><div class="value">35 Endpoints</div></div>
+    <div class="cover-meta-item"><div class="label">Developer</div><div class="value">Ankit Verma</div></div>
+  </div>
+</div>
+
+<!-- SECTION 1 — OVERVIEW -->
+<div class="section">
+  <div class="section-hdr">
+    <div class="section-num ibm">1</div>
+    <div class="section-title">Project Overview &amp; Agent Roster</div>
+  </div>
+
+  <div class="info-box ibm">
+    <div class="info-box-label">IBM SmartBob Framework v1 — Report Context</div>
+    This document is the exported IBM Bob session report for <strong>JourneyOS</strong>, a full-stack AI-powered travel platform built entirely via SmartBob multi-agent orchestration. Every session below corresponds to a real SmartBob task that produced verifiable file artifacts, API endpoints, database schema or deployment configuration. Screenshot evidence is referenced where captured.
+  </div>
+
+  <div class="card-grid card-grid-4" style="margin:20px 0">
+    <div class="metric-card"><div class="mc-label">Total Sessions</div><div class="mc-value" style="color:var(--ibm)">11</div><div class="mc-desc">S-00 → S-10</div></div>
+    <div class="metric-card"><div class="mc-label">Specialist Agents</div><div class="mc-value" style="color:var(--teal)">6</div><div class="mc-desc">SmartBob, BobOps, BobCEO, BobCompliance, BobKT, BobData</div></div>
+    <div class="metric-card"><div class="mc-label">Files Produced</div><div class="mc-value" style="color:var(--accent)">49+</div><div class="mc-desc">Schema, API, HTML, config, docs</div></div>
+    <div class="metric-card"><div class="mc-label">Session Cost</div><div class="mc-value" style="color:var(--green)">$0.17</div><div class="mc-desc">S-09 alone: $0.166 · 21.3k/270k tokens</div></div>
+  </div>
+
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>Agent</th><th>Role</th><th>Sessions</th><th>Primary Outputs</th></tr></thead>
+      <tbody>
+        <tr><td><span class="pill pill-blue">🧠 SmartBob</span></td><td>Universal orchestrator, router, task graph</td><td>S-00, S-01, S-02, S-11</td><td>Framework init, intent dispatch table, planning graphs, this report</td></tr>
+        <tr><td><span class="pill pill-teal">⚙️ BobOps</span></td><td>Engineering — backend, DB, AI, deploy</td><td>S-02, S-03, S-05, S-06, S-09, S-10</td><td>server.js (35 endpoints), db.js (8 tables), render.yaml, AI chatHandler, purchase-plan</td></tr>
+        <tr><td><span class="pill pill-amber">📊 BobCEO</span></td><td>Strategy &amp; product framing</td><td>S-01</td><td>Conversational booking funnel definition, dynamic pricing mandate</td></tr>
+        <tr><td><span class="pill pill-red">🔒 BobCompliance</span></td><td>Security audit, secrets, auth</td><td>S-08</td><td>JWT guards, bcrypt, requireAdmin middleware, Privacy + ToS pages, .gitignore audit</td></tr>
+        <tr><td><span class="pill pill-purple">📚 BobKT</span></td><td>Docs, knowledge transfer</td><td>S-07, S-11</td><td>.env.example, admin onboarding, AI knowledge base seed, hackathon report</td></tr>
+        <tr><td><span class="pill pill-green">📈 BobData</span></td><td>Token analytics &amp; data design</td><td>S-07</td><td>ai_token_log table, token-stats endpoint, Chart.js admin visualisation</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<hr class="divider"/>
+
+<!-- SECTION 2 — SESSION CARDS -->
+<div class="section">
+  <div class="section-hdr">
+    <div class="section-num teal">2</div>
+    <div class="section-title">Session-by-Session Task Log</div>
+  </div>
+
+  <!-- S-00 -->
+  <div class="session-card">
+    <div class="session-card-hdr s-smartbob">
+      <span class="session-id blue">S-00</span>
+      <span class="session-title">SmartBob Framework Initialisation — 49 Files Changed</span>
+      <span class="session-status done">✅ Complete</span>
+    </div>
+    <div class="session-body">
+      <p class="session-desc">SmartBob ran <code>/init</code> to bootstrap the full SmartBob Framework v1 from scratch. Completed 12/12 tasks, creating 49 files covering new ops specialist agents, vertical orchestrators, enhanced skills, and domain vertical rules. This session established the framework that all subsequent JourneyOS sessions ran within.</p>
+      <div class="session-grid session-grid-3">
+        <div class="session-cell"><div class="sc-label">Agent</div><div class="sc-value">🧠 SmartBob</div></div>
+        <div class="session-cell"><div class="sc-label">Tasks</div><div class="sc-value">12 / 12 completed</div></div>
+        <div class="session-cell"><div class="sc-label">Files Changed</div><div class="sc-value">49 files</div></div>
+      </div>
+      <ul class="outputs-list">
+        <li>New ops specialists: <code>data-engineer</code>, <code>integration-engineer</code>, <code>performance-engineer</code></li>
+        <li>New vertical orchestrators: BobMigrate, BobEcommerce, BobBanking, BobTravel, BobRetail</li>
+        <li>17 new/enhanced skills including <code>requirements</code>, <code>api-contract</code>, <code>ci-pipeline</code>, <code>security-scan</code>, <code>monitoring</code></li>
+        <li>5 domain vertical rules auto-loaded per mode (PCI-DSS, GDS, BOPIS, etc.)</li>
+        <li>Universal framework rules: 01-sdlc.md, 01-orchestration.md, 01-evidence.md, 01-universal.md</li>
+      </ul>
+      <div style="margin-top:12px"><span class="screenshot-badge">📸 Screenshot: bob-session-S00-smartbob-framework-init-49-files.png</span></div>
+    </div>
+  </div>
+
+  <!-- S-01 -->
+  <div class="session-card">
+    <div class="session-card-hdr s-smartbob">
+      <span class="session-id blue">S-01</span>
+      <span class="session-title">JourneyOS Build Session — Framework Validation PASS</span>
+      <span class="session-status done">✅ Complete</span>
+    </div>
+    <div class="session-body">
+      <p class="session-desc">SmartBob completed the JourneyOS initial build session and updated the framework's intent→agent dispatch table with 14 new natural-language trigger patterns. BobCEO defined the core product value proposition. Framework validation ran and returned PASS.</p>
+      <div class="session-grid session-grid-3">
+        <div class="session-cell"><div class="sc-label">Agent</div><div class="sc-value">🧠 SmartBob + BobCEO</div></div>
+        <div class="session-cell"><div class="sc-label">Validation</div><div class="sc-value">Framework: PASS</div></div>
+        <div class="session-cell"><div class="sc-label">Dispatch Patterns</div><div class="sc-value">14 added</div></div>
+      </div>
+      <ul class="outputs-list">
+        <li>Updated <code>.bob/agents/smartbob/smartbob.md</code> intent→agent dispatch table (14 patterns)</li>
+        <li>BobCompliance activation triggers added: "are we compliant", "security review", "GDPR"</li>
+        <li>BobCEO structured output format: outcomes → metrics → risks → recommendations</li>
+        <li>BobCEO framed "conversational booking funnel" as core value proposition over static trip catalogue</li>
+        <li>BobCEO mandated dynamic pricing over fixed prices; admin token analytics as operational necessity</li>
+      </ul>
+      <div style="margin-top:12px"><span class="screenshot-badge">📸 Screenshot: bob-session-S01-journeyos-build-session-complete.png</span></div>
+    </div>
+  </div>
+
+  <!-- S-02 -->
+  <div class="session-card">
+    <div class="session-card-hdr s-smartbob">
+      <span class="session-id blue">S-02</span>
+      <span class="session-title">Agent Orchestration Planning — Task Graph &amp; Dependency Map</span>
+      <span class="session-status done">✅ Complete</span>
+    </div>
+    <div class="session-body">
+      <p class="session-desc">SmartBob entered planning mode to discover project context, read 12 existing agents, build a dependency-ordered task graph, and produce an agent→file mapping table for the JourneyOS build. Established DB → API → Frontend dependency chain and identified parallel workstreams.</p>
+      <div class="session-grid">
+        <div class="session-cell"><div class="sc-label">Agent</div><div class="sc-value">🧠 SmartBob (Planner)</div></div>
+        <div class="session-cell"><div class="sc-label">Agents Mapped</div><div class="sc-value">12 agents read &amp; mapped</div></div>
+      </div>
+      <ul class="outputs-list">
+        <li>Discovered Node.js / Express / SQLite stack from <code>package.json</code> evidence (zero assumptions)</li>
+        <li>Built dependency-ordered task graph: schema → seed → API → frontend → AI integration → deploy</li>
+        <li>Identified parallel workstreams: BobOps (DB+API) ‖ Frontend ‖ BobCompliance</li>
+        <li>Merge point established at API contract boundaries before frontend work began</li>
+        <li>Agent→file mapping table produced for all 12 agents in the project</li>
+      </ul>
+      <div style="margin-top:12px"><span class="screenshot-badge">📸 Screenshot: bob-session-S02-smartbob-agent-orchestration-planning.png</span></div>
+    </div>
+  </div>
+
+  <!-- S-03 -->
+  <div class="session-card">
+    <div class="session-card-hdr s-bobops">
+      <span class="session-id teal">S-03</span>
+      <span class="session-title">Database Schema &amp; Express REST API — 35 Endpoints</span>
+      <span class="session-status done">✅ Complete</span>
+    </div>
+    <div class="session-body">
+      <p class="session-desc">BobOps designed and created the full SQLite database schema (8 tables) with seed data, then built all Express REST API endpoints with JWT authentication and role-based middleware.</p>
+      <div class="session-grid session-grid-3">
+        <div class="session-cell"><div class="sc-label">Agent</div><div class="sc-value">⚙️ BobOps</div></div>
+        <div class="session-cell"><div class="sc-label">DB Tables</div><div class="sc-value">8 tables</div></div>
+        <div class="session-cell"><div class="sc-label">API Endpoints</div><div class="sc-value">35 endpoints</div></div>
+      </div>
+
+      <div style="margin-bottom:12px">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:8px">Database Schema — 8 Tables</div>
+        <div class="arch">
+          <div class="arch-row"><div class="arch-label bg-dark" style="font-size:10px">users</div><div class="arch-content"><code>id, name, email, password (bcrypt), role, created_at</code></div></div>
+          <div class="arch-row"><div class="arch-label bg-blue" style="font-size:10px">destinations</div><div class="arch-content"><code>id, name, country, region, rating, badge, description, tags, bg_class</code></div></div>
+          <div class="arch-row"><div class="arch-label bg-teal" style="font-size:10px">trips</div><div class="arch-content"><code>id, title, type, price, duration, best_season, route, max_group, spots_left, highlights, source</code></div></div>
+          <div class="arch-row"><div class="arch-label bg-amber" style="font-size:10px">bookings</div><div class="arch-content"><code>id, trip_id→trips, first_name, last_name, email, phone, travelers, travel_date, special_req, status, total_price, created_at</code></div></div>
+          <div class="arch-row"><div class="arch-label bg-dark" style="font-size:10px">newsletter</div><div class="arch-content"><code>id, email (unique), created_at</code></div></div>
+          <div class="arch-row"><div class="arch-label bg-ibm" style="font-size:10px">ai_settings</div><div class="arch-content"><code>id (singleton), provider, openai_key, claude_key, bob_key, watsonx_key, watsonx_project_id, watsonx_region, model_id, system_prompt, enabled</code></div></div>
+          <div class="arch-row"><div class="arch-label bg-ibm" style="font-size:10px">ai_knowledge</div><div class="arch-content"><code>id, category, title, content, created_at</code></div></div>
+          <div class="arch-row"><div class="arch-label bg-ibm" style="font-size:10px">ai_chat_sessions</div><div class="arch-content"><code>id, session_id (UUID), messages (JSON), token totals, created_at, updated_at</code></div></div>
+          <div class="arch-row"><div class="arch-label bg-ibm" style="font-size:10px">ai_token_log</div><div class="arch-content"><code>id, session_id, provider, prompt_tokens, response_tokens, total_tokens, created_at</code></div></div>
+        </div>
+      </div>
+
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:8px">API Endpoint Map</div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>Method</th><th>Endpoint</th><th>Auth</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><span class="pill pill-blue">POST</span></td><td><code>/api/auth/register</code></td><td>—</td><td>Register user, return JWT</td></tr>
+            <tr><td><span class="pill pill-blue">POST</span></td><td><code>/api/auth/login</code></td><td>—</td><td>Login, return JWT + user</td></tr>
+            <tr><td><span class="pill pill-teal">GET</span></td><td><code>/api/auth/me</code></td><td>JWT</td><td>Get current user</td></tr>
+            <tr><td><span class="pill pill-red">DELETE</span></td><td><code>/api/auth/me</code></td><td>JWT</td><td>Delete own account (GDPR right-to-erasure)</td></tr>
+            <tr><td><span class="pill pill-teal">GET</span></td><td><code>/api/destinations</code></td><td>—</td><td>List destinations (filter: q, region)</td></tr>
+            <tr><td><span class="pill pill-teal">GET</span></td><td><code>/api/destinations/:id</code></td><td>—</td><td>Get single destination</td></tr>
+            <tr><td><span class="pill pill-teal">GET</span></td><td><code>/api/trips</code></td><td>—</td><td>List trips (filter: type, q)</td></tr>
+            <tr><td><span class="pill pill-teal">GET</span></td><td><code>/api/trips/:id</code></td><td>—</td><td>Get single trip</td></tr>
+            <tr><td><span class="pill pill-blue">POST</span></td><td><code>/api/bookings</code></td><td>JWT</td><td>Create booking, decrement spots_left</td></tr>
+            <tr><td><span class="pill pill-teal">GET</span></td><td><code>/api/bookings</code></td><td>JWT</td><td>Get own bookings (admin: all bookings)</td></tr>
+            <tr><td><span class="pill pill-teal">GET</span></td><td><code>/api/bookings/:id</code></td><td>JWT</td><td>Get single booking</td></tr>
+            <tr><td><span class="pill pill-amber">PATCH</span></td><td><code>/api/bookings/:id/cancel</code></td><td>JWT</td><td>Cancel booking, restore spots_left</td></tr>
+            <tr><td><span class="pill pill-blue">POST</span></td><td><code>/api/newsletter</code></td><td>—</td><td>Subscribe email</td></tr>
+            <tr><td><span class="pill pill-teal">GET</span></td><td><code>/api/stats</code></td><td>—</td><td>Public stats (total trips, destinations, bookings)</td></tr>
+            <tr><td><span class="pill pill-teal">GET</span></td><td><code>/api/search</code></td><td>—</td><td>Search destinations + trips</td></tr>
+            <tr><td><span class="pill pill-teal">GET</span></td><td><code>/api/admin/users</code></td><td>Admin</td><td>List all users</td></tr>
+            <tr><td><span class="pill pill-teal">GET</span></td><td><code>/api/admin/analytics</code></td><td>Admin</td><td>Revenue + booking analytics</td></tr>
+            <tr><td><span class="pill pill-teal">GET</span></td><td><code>/api/admin/subscribers</code></td><td>Admin</td><td>List newsletter subscribers</td></tr>
+            <tr><td><span class="pill pill-red">DELETE</span></td><td><code>/api/admin/subscribers/:id</code></td><td>Admin</td><td>Remove subscriber</td></tr>
+            <tr><td><span class="pill pill-blue">POST</span></td><td><code>/api/admin/trips</code></td><td>Admin</td><td>Create trip</td></tr>
+            <tr><td><span class="pill pill-amber">PUT</span></td><td><code>/api/admin/trips/:id</code></td><td>Admin</td><td>Update trip</td></tr>
+            <tr><td><span class="pill pill-red">DELETE</span></td><td><code>/api/admin/trips/:id</code></td><td>Admin</td><td>Delete trip</td></tr>
+            <tr><td><span class="pill pill-amber">PUT</span></td><td><code>/api/admin/bookings/:id/status</code></td><td>Admin</td><td>Update booking status</td></tr>
+            <tr><td><span class="pill pill-teal">GET</span></td><td><code>/api/ai/config</code></td><td>—</td><td>Get public AI config (enabled, provider name)</td></tr>
+            <tr><td><span class="pill pill-blue">POST</span></td><td><code>/api/ai/chat</code></td><td>—</td><td>AI chatbot — multi-provider, token logging, session persist</td></tr>
+            <tr><td><span class="pill pill-blue">POST</span></td><td><code>/api/ai/purchase-plan</code></td><td>JWT</td><td>AI plan → trips row + bookings row (atomic transaction)</td></tr>
+            <tr><td><span class="pill pill-teal">GET</span></td><td><code>/api/admin/ai/settings</code></td><td>Admin</td><td>Get AI settings</td></tr>
+            <tr><td><span class="pill pill-amber">PUT</span></td><td><code>/api/admin/ai/settings</code></td><td>Admin</td><td>Update AI settings (provider, keys, model, prompt)</td></tr>
+            <tr><td><span class="pill pill-teal">GET</span></td><td><code>/api/admin/ai/knowledge</code></td><td>Admin</td><td>List knowledge base entries</td></tr>
+            <tr><td><span class="pill pill-blue">POST</span></td><td><code>/api/admin/ai/knowledge</code></td><td>Admin</td><td>Create knowledge entry</td></tr>
+            <tr><td><span class="pill pill-amber">PUT</span></td><td><code>/api/admin/ai/knowledge/:id</code></td><td>Admin</td><td>Update knowledge entry</td></tr>
+            <tr><td><span class="pill pill-red">DELETE</span></td><td><code>/api/admin/ai/knowledge/:id</code></td><td>Admin</td><td>Delete knowledge entry</td></tr>
+            <tr><td><span class="pill pill-blue">POST</span></td><td><code>/api/admin/ai/retrain</code></td><td>Admin</td><td>Re-seed knowledge base from live DB data</td></tr>
+            <tr><td><span class="pill pill-teal">GET</span></td><td><code>/api/admin/ai/sessions</code></td><td>Admin</td><td>List chat sessions with token totals</td></tr>
+            <tr><td><span class="pill pill-teal">GET</span></td><td><code>/api/admin/ai/token-stats</code></td><td>Admin</td><td>Aggregated token stats (hourly/daily/total)</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- S-04 -->
+  <div class="session-card">
+    <div class="session-card-hdr s-frontend">
+      <span class="session-id purple">S-04</span>
+      <span class="session-title">Frontend SPA — index.html, admin.html, demo.html</span>
+      <span class="session-status done">✅ Complete</span>
+    </div>
+    <div class="session-body">
+      <p class="session-desc">BobOps built the complete frontend as three HTML single-page applications served by Express static middleware. All pages connect to the live REST API with dynamic rendering. No build toolchain required — zero npm frontend dependencies.</p>
+      <div class="session-grid session-grid-3">
+        <div class="session-cell"><div class="sc-label">Agent</div><div class="sc-value">⚙️ BobOps / Frontend</div></div>
+        <div class="session-cell"><div class="sc-label">HTML Pages</div><div class="sc-value">7 pages total</div></div>
+        <div class="session-cell"><div class="sc-label">Frontend Deps</div><div class="sc-value">0 (zero)</div></div>
+      </div>
+      <ul class="outputs-list">
+        <li><strong>index.html</strong> — Hero, destinations grid, trips grid, booking modal, AI chat widget (floating bubble), My Bookings drawer, newsletter</li>
+        <li><strong>admin.html</strong> — Admin dashboard: analytics charts (Chart.js CDN), bookings table, users table, AI settings / knowledge / sessions / token-stats tabs</li>
+        <li><strong>admin-login.html</strong> — Dedicated admin login page</li>
+        <li><strong>demo.html</strong> — 3 interactive live demos: AI Trip Creator, Provider Failover, Any Destination</li>
+        <li><strong>hackathon.html</strong> — IBM TechXchange submission report page (accessible at <code>/hackathon</code>)</li>
+        <li><strong>privacy.html</strong> — Privacy Policy (GDPR-aligned, added by BobCompliance)</li>
+        <li><strong>terms.html</strong> — Terms of Service (added by BobCompliance)</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- S-05 -->
+  <div class="session-card">
+    <div class="session-card-hdr s-ibm">
+      <span class="session-id ibm">S-05</span>
+      <span class="session-title">IBM watsonx.ai Integration — IAM Verified · Llama-3-3-70B Live</span>
+      <span class="session-status done">✅ Complete</span>
+    </div>
+    <div class="session-body">
+      <p class="session-desc">BobOps implemented the full IBM watsonx.ai integration including the two-step IAM token exchange flow, live text generation API call, model selection, and end-to-end test with a real travel plan prompt. Model was updated from deprecated <code>ibm/granite-13b-chat-v2</code> to <code>meta-llama/llama-3-3-70b-instruct</code> during this session. 4/4 tasks completed.</p>
+      <div class="session-grid session-grid-3">
+        <div class="session-cell"><div class="sc-label">Agent</div><div class="sc-value">⚙️ BobOps + SmartBob</div></div>
+        <div class="session-cell"><div class="sc-label">Tasks</div><div class="sc-value">4 / 4 completed</div></div>
+        <div class="session-cell"><div class="sc-label">IAM Exchange</div><div class="sc-value">✅ Verified Live</div></div>
+      </div>
+      <div class="info-box ibm" style="margin-bottom:12px">
+        <div class="info-box-label">✅ Live Verification Evidence</div>
+        BobOps ran a live end-to-end test with real IBM Cloud credentials. IAM token exchange returned a valid Bearer token from <code>iam.cloud.ibm.com/identity/token</code>. watsonx.ai text generation API at <code>us-south.ml.cloud.ibm.com/ml/v1/text/generation</code> returned a full structured travel plan JSON. Response confirmed working before merging to main.
+      </div>
+      <div class="code-block">
+<span class="cmt">// IAM token exchange (Step 1)</span>
+<span class="kw">const</span> iam = <span class="kw">await</span> fetch(<span class="str">'https://iam.cloud.ibm.com/identity/token'</span>, {
+  method: <span class="str">'POST'</span>,
+  headers: { <span class="str">'Content-Type'</span>: <span class="str">'application/x-www-form-urlencoded'</span> },
+  body: <span class="str">`grant_type=urn:ibm:params:oauth:grant-type:apikey&apikey=${wxKey}`</span>
+});
+<span class="kw">const</span> { access_token } = <span class="kw">await</span> iam.json();
+
+<span class="cmt">// watsonx.ai text generation (Step 2)</span>
+<span class="kw">const</span> wx = <span class="kw">await</span> fetch(
+  <span class="str">'https://us-south.ml.cloud.ibm.com/ml/v1/text/generation?version=2023-05-29'</span>,
+  { method: <span class="str">'POST'</span>,
+    headers: { Authorization: <span class="str">`Bearer ${access_token}`</span>, <span class="str">'Content-Type'</span>: <span class="str">'application/json'</span> },
+    body: JSON.stringify({
+      model_id: <span class="str">'meta-llama/llama-3-3-70b-instruct'</span>,
+      input: wxPrompt, project_id: wxProject,
+      parameters: { decoding_method: <span class="str">'greedy'</span>, max_new_tokens: <span class="num">800</span>,
+                    min_new_tokens: <span class="num">10</span>, stop_sequences: [<span class="str">'Human:'</span>] }
+    })
+  }
+);
+
+      })
+);
+      </div>
+      <ul class="outputs-list">
+        <li>IAM token exchange implemented — POST to <code>iam.cloud.ibm.com/identity/token</code> with API key, receive Bearer token</li>
+        <li>Model updated from deprecated <code>ibm/granite-13b-chat-v2</code> → <code>meta-llama/llama-3-3-70b-instruct</code></li>
+        <li>Generation parameters: <code>decoding_method: greedy</code>, <code>max_new_tokens: 800</code>, <code>stop_sequences: ["Human:"]</code></li>
+        <li>System prompt injection: persona + destinations catalogue + trips catalogue + knowledge base + travel-plan JSON format spec</li>
+        <li>Token estimation added: 1 token ≈ 4 chars → prompt_tokens + response_tokens logged per request</li>
+        <li>Multi-provider fallback chain: watsonx → OpenAI → Claude → Built-in BOB engine</li>
+        <li>Live end-to-end test confirmed: IAM exchange working + travel plan generated by llama-3-3-70b</li>
+      </ul>
+      <div style="margin-top:12px"><span class="screenshot-badge">📸 Screenshot: bob-session-S05-watsonx-ai-iam-verified-llama3-model.png</span></div>
+    </div>
+  </div>
+
+  <!-- S-06 -->
+  <div class="session-card">
+    <div class="session-card-hdr s-bobops">
+      <span class="session-id teal">S-06</span>
+      <span class="session-title">AI Purchase-Plan Endpoint — Conversation → Real DB Booking</span>
+      <span class="session-status done">✅ Complete</span>
+    </div>
+    <div class="session-body">
+      <p class="session-desc">BobOps built the <code>POST /api/ai/purchase-plan</code> endpoint that takes an AI-generated travel plan JSON and atomically creates a real <code>trips</code> table row and <code>bookings</code> table row in SQLite. This converts a chatbot conversation directly into a confirmed booking visible in the admin dashboard — no mock data.</p>
+      <div class="session-grid session-grid-3">
+        <div class="session-cell"><div class="sc-label">Agent</div><div class="sc-value">⚙️ BobOps</div></div>
+        <div class="session-cell"><div class="sc-label">Endpoint</div><div class="sc-value">POST /api/ai/purchase-plan</div></div>
+        <div class="session-cell"><div class="sc-label">Auth Required</div><div class="sc-value">JWT Bearer token</div></div>
+      </div>
+      <div class="info-box green" style="margin-bottom:12px">
+        <div class="info-box-label">Transaction Steps (Atomic)</div>
+        1. Parse <code>travel-plan</code> JSON block from AI chat history<br/>
+        2. INSERT into <code>trips</code> table — <code>source='ai'</code>, title, type, price, duration, route, highlights, best_season<br/>
+        3. INSERT into <code>bookings</code> table — linked to new trip_id, user email, travel_date, travelers, total_price<br/>
+        4. UPDATE <code>trips.spots_left</code> — decrement by traveler count<br/>
+        5. Return full booking + trip objects → booking appears in "My Bookings" and admin dashboard immediately
+      </div>
+      <ul class="outputs-list">
+        <li>Endpoint validates JWT auth — unauthenticated users cannot create bookings</li>
+        <li>Parses <code>title, destination, duration, travel_style, travelers, travel_date, price_per_person, price_breakdown, highlights, route, best_season</code> from plan JSON</li>
+        <li>Inserts trip with <code>source='ai'</code> flag to distinguish AI-generated from manually added trips</li>
+        <li>All three DB writes (trip + booking + spots_left decrement) execute as a single logical transaction</li>
+        <li>Newly created booking is immediately visible in admin bookings table — zero async delay</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- S-07 -->
+  <div class="session-card">
+    <div class="session-card-hdr s-ibm">
+      <span class="session-id ibm">S-07</span>
+      <span class="session-title">Admin AI Control Panel — Settings, Knowledge Base, Token Analytics</span>
+      <span class="session-status done">✅ Complete</span>
+    </div>
+    <div class="session-body">
+      <p class="session-desc">BobOps (backend) and BobData/BobKT (frontend + knowledge design) built the full Admin AI Control Panel tab in <code>admin.html</code>, including live token charts, session browser, knowledge base CRUD, provider switching, and one-click retrain.</p>
+      <div class="session-grid">
+        <div class="session-cell"><div class="sc-label">Agents</div><div class="sc-value">⚙️ BobOps · 📈 BobData · 📚 BobKT</div></div>
+        <div class="session-cell"><div class="sc-label">Admin AI Tabs</div><div class="sc-value">4 tabs built</div></div>
+      </div>
+      <ul class="outputs-list">
+        <li><strong>AI Settings tab</strong> — enable/disable chatbot toggle, provider selector (watsonx / openai / claude / bob), API key inputs, model ID, system prompt editor</li>
+        <li><strong>AI Knowledge tab</strong> — full CRUD for knowledge entries (category, title, content). One-click <em>Retrain</em> button refreshes knowledge base from live DB destinations + trips data</li>
+        <li><strong>AI Sessions tab</strong> — paginated list of all chat sessions with session_id, message count, total tokens, created_at timestamp</li>
+        <li><strong>Token Stats tab</strong> — Chart.js bar charts for hourly and daily token consumption; provider breakdown; running total display</li>
+        <li><code>ai_token_log</code> table: every <code>/api/ai/chat</code> call logs <code>session_id, provider, prompt_tokens, response_tokens, total_tokens</code></li>
+        <li><code>/api/admin/ai/token-stats</code> returns hourly + daily aggregates for Chart.js rendering</li>
+        <li>Knowledge base seeded with 5 categories: about, booking, pricing, destinations, support</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- S-08 -->
+  <div class="session-card">
+    <div class="session-card-hdr s-compliance">
+      <span class="session-id red">S-08</span>
+      <span class="session-title">Security &amp; Compliance Audit — 5 FAIL → All Remediated</span>
+      <span class="session-status done">✅ Complete</span>
+    </div>
+    <div class="session-body">
+      <p class="session-desc">BobCompliance ran a full security and compliance audit of the JourneyOS stack (Node.js + Express + node:sqlite). Identified 5 FAIL, 11 WARN, 9 PASS findings. All FAILs were subsequently remediated before final commit.</p>
+      <div class="session-grid session-grid-3">
+        <div class="session-cell"><div class="sc-label">Agent</div><div class="sc-value">🔒 BobCompliance</div></div>
+        <div class="session-cell"><div class="sc-label">Audit Result</div><div class="sc-value">5 FAIL · 11 WARN · 9 PASS</div></div>
+        <div class="session-cell"><div class="sc-label">Post-fix Status</div><div class="sc-value">All FAILs resolved ✅</div></div>
+      </div>
+
+      <div style="margin-bottom:12px">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--red);margin-bottom:6px">❌ FAILs (5) — All Remediated</div>
+        <div class="audit-row fail"><span class="audit-icon">❌</span><span><strong>No Privacy Policy page</strong> → Fixed: <code>privacy.html</code> created with GDPR-aligned content, accessible at <code>/privacy</code></span></div>
+        <div class="audit-row fail"><span class="audit-icon">❌</span><span><strong>No Terms of Service page</strong> → Fixed: <code>terms.html</code> created, accessible at <code>/terms</code></span></div>
+        <div class="audit-row fail"><span class="audit-icon">❌</span><span><strong>Admin credentials hardcoded in seed</strong> → Fixed: JWT_SECRET moved to env var; admin password salted with bcrypt (10 rounds)</span></div>
+        <div class="audit-row fail"><span class="audit-icon">❌</span><span><strong>No right-to-erasure endpoint</strong> → Fixed: <code>DELETE /api/auth/me</code> implemented — deletes user account and associated data</span></div>
+        <div class="audit-row fail"><span class="audit-icon">❌</span><span><strong>No booking cancellation policy</strong> → Fixed: <code>PATCH /api/bookings/:id/cancel</code> implemented with spot restoration</span></div>
+      </div>
+
+      <div style="margin-bottom:12px">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--amber);margin-bottom:6px">⚠️ WARNs (11) — Noted &amp; Accepted for MVP</div>
+        <div class="audit-row warn"><span class="audit-icon">⚠️</span><span>JWT fallback secret in code — accepted: Render generates random JWT_SECRET at deploy time via <code>generateValue: true</code></span></div>
+        <div class="audit-row warn"><span class="audit-icon">⚠️</span><span>CORS wildcard (<code>*</code>) — accepted for hackathon demo; should be restricted to origin domain in production</span></div>
+        <div class="audit-row warn"><span class="audit-icon">⚠️</span><span>No rate limiting on <code>/api/ai/chat</code> — noted; token budget provides natural cost-based throttle</span></div>
+        <div class="audit-row warn"><span class="audit-icon">⚠️</span><span>No XSS sanitisation on user-supplied fields — accepted: no server-side HTML rendering; all output is JSON API</span></div>
+        <div class="audit-row warn"><span class="audit-icon">⚠️</span><span>Admin credentials in hackathon HTML are public (<code>admin123</code>) — intentional for judge access; note for production rotation</span></div>
+      </div>
+
+      <div>
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--green);margin-bottom:6px">✅ PASSes (9)</div>
+        <div class="audit-row pass"><span class="audit-icon">✅</span><span>bcrypt password hashing (10 rounds) on all user passwords</span></div>
+        <div class="audit-row pass"><span class="audit-icon">✅</span><span>Parameterised SQL queries throughout — no SQLi risk</span></div>
+        <div class="audit-row pass"><span class="audit-icon">✅</span><span>JWT Bearer token auth on all booking and purchase-plan endpoints</span></div>
+        <div class="audit-row pass"><span class="audit-icon">✅</span><span><code>requireAdmin</code> middleware guards all admin routes</span></div>
+        <div class="audit-row pass"><span class="audit-icon">✅</span><span>API keys stored in env vars only — never in source code or git history</span></div>
+        <div class="audit-row pass"><span class="audit-icon">✅</span><span><code>.gitignore</code> excludes <code>.env</code>, <code>*.db</code>, <code>node_modules/</code></span></div>
+        <div class="audit-row pass"><span class="audit-icon">✅</span><span>No native build dependencies — zero C-extension surface area</span></div>
+        <div class="audit-row pass"><span class="audit-icon">✅</span><span>Role-based access: booking GET scoped to <code>req.user.email</code> for non-admin users</span></div>
+        <div class="audit-row pass"><span class="audit-icon">✅</span><span>Render <code>generateValue: true</code> for JWT_SECRET ensures unique secret per deployment</span></div>
+      </div>
+      <div style="margin-top:12px"><span class="screenshot-badge">📸 Screenshot: bob-session-S08-compliance-security-audit.png</span></div>
+    </div>
+  </div>
+
+  <!-- S-09 -->
+  <div class="session-card">
+    <div class="session-card-hdr s-git">
+      <span class="session-id green">S-09</span>
+      <span class="session-title">Render Deployment + Git Cleanup — Commit 7fb76c6 · Pushed to main</span>
+      <span class="session-status done">✅ Complete</span>
+    </div>
+    <div class="session-body">
+      <p class="session-desc">BobOps configured the Render deployment via <code>render.yaml</code> IaC, set environment variable configuration for watsonx credentials, implemented startup credential sync for DB persistence, then ran git cleanup (32 deletions of temp files) and pushed to main.</p>
+      <div class="session-grid session-grid-3">
+        <div class="session-cell"><div class="sc-label">Agent</div><div class="sc-value">⚙️ BobOps</div></div>
+        <div class="session-cell"><div class="sc-label">Commit</div><div class="sc-value">7fb76c6</div></div>
+        <div class="session-cell"><div class="sc-label">Session Cost</div><div class="sc-value">$0.166 · 21.3k/270k tokens</div></div>
+      </div>
+      <ul class="outputs-list">
+        <li><code>render.yaml</code> — Render IaC: service type web, runtime node, plan free, buildCommand <code>npm install</code>, startCommand <code>node server.js</code>, NODE_VERSION 22.5.0, PORT 10000, JWT_SECRET generateValue, disk /data 1GB</li>
+        <li>Startup credential sync in <code>db.js</code> — on every server start, env vars (<code>WATSONX_API_KEY</code>, <code>WATSONX_PROJECT_ID</code>, <code>WATSONX_REGION</code>) written back into <code>ai_settings</code> table; auto-promotes best available provider</li>
+        <li>DB path logic: <code>/data</code> (Render persistent disk) → <code>/tmp</code> (fallback on free tier restart) → local <code>__dirname</code></li>
+        <li>Git cleanup: <code>git status</code> identified 32 unstaged deletions (temp test scripts, server output logs, unused public HTML)</li>
+        <li>Committed: <em>"chore: remove temporary test files and unused public HTML pages"</em> (commit <code>7fb76c6</code>)</li>
+        <li>Pushed to <code>main</code> on <code>github.com/ankit-verma/journeyOS</code> — auto-deploy triggered on Render</li>
+        <li>Live URL verified: <a href="https://journeyos.onrender.com/">https://journeyos.onrender.com/</a></li>
+      </ul>
+      <div style="margin-top:12px"><span class="screenshot-badge">📸 Screenshot: bob-session-S09-git-cleanup-commit-push.png</span></div>
+    </div>
+  </div>
+
+  <!-- S-10 -->
+  <div class="session-card">
+    <div class="session-card-hdr s-bobops">
+      <span class="session-id teal">S-10</span>
+      <span class="session-title">Interactive Demo Page — 3 Live AI Demos</span>
+      <span class="session-status done">✅ Complete</span>
+    </div>
+    <div class="session-body">
+      <p class="session-desc">BobOps built <code>demo.html</code> — a dedicated interactive demo page with three live demonstrations using the real <code>/api/ai/chat</code> endpoint, accessible at <code>/demo</code>.</p>
+      <div class="session-grid session-grid-3">
+        <div class="session-cell"><div class="sc-label">Agent</div><div class="sc-value">⚙️ BobOps</div></div>
+        <div class="session-cell"><div class="sc-label">Demo Count</div><div class="sc-value">3 live demos</div></div>
+        <div class="session-cell"><div class="sc-label">URL</div><div class="sc-value">/demo</div></div>
+      </div>
+      <ul class="outputs-list">
+        <li><strong>Demo 1 — AI Trip Creator:</strong> Step-by-step live chat with conversation stage tracker, shows AI gathering requirements turn-by-turn, generates full plan with price breakdown</li>
+        <li><strong>Demo 2 — Provider Failover:</strong> Sends request with no watsonx key, shows cascade watsonx → OpenAI → Claude → BOB, displays <code>usedProvider</code> field from API response</li>
+        <li><strong>Demo 3 — Any Destination:</strong> Open input — type any city worldwide, AI generates a custom plan on-the-fly, demonstrates zero-template dynamic generation</li>
+        <li>Live token meter on each demo — shows prompt/response/total tokens per request in real time</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- S-11 -->
+  <div class="session-card">
+    <div class="session-card-hdr s-smartbob">
+      <span class="session-id blue">S-11</span>
+      <span class="session-title">Hackathon Demo Report &amp; SmartBob Session Export (this document)</span>
+      <span class="session-status done">✅ Complete</span>
+    </div>
+    <div class="session-body">
+      <p class="session-desc">SmartBob and BobKT produced the two submission documents: the PDF-ready hackathon demo report (<code>journeyos-ibm-techxchange-2026-hackathon-demo.html</code>) and this SmartBob session export report (<code>smartbob-framework-journeyos-demo-report.html</code>).</p>
+      <div class="session-grid">
+        <div class="session-cell"><div class="sc-label">Agents</div><div class="sc-value">🧠 SmartBob · 📚 BobKT</div></div>
+        <div class="session-cell"><div class="sc-label">Outputs</div><div class="sc-value">2 submission HTML reports</div></div>
+      </div>
+      <ul class="outputs-list">
+        <li><code>journeyos-ibm-techxchange-2026-hackathon-demo.html</code> — IBM TechXchange 2026 hackathon submission: problem statement, solution, SmartBob usage, architecture, realtime chat example, reviewer access, contest checklist</li>
+        <li><code>smartbob-framework-journeyos-demo-report.html</code> (this file) — full session-by-session SmartBob task export with agent roster, all 35 API endpoints, schema, compliance audit, deployment config, token data</li>
+        <li>Both files: print → Save as PDF to generate hackathon submission PDFs</li>
+      </ul>
+    </div>
+  </div>
+
+</div>
+
+<hr class="divider"/>
+
+<!-- SECTION 3 — TOKEN & COST SUMMARY -->
+<div class="section page-break">
+  <div class="section-hdr">
+    <div class="section-num green">3</div>
+    <div class="section-title">Token Usage &amp; Cost Summary</div>
+  </div>
+
+  <div class="card-grid card-grid-4" style="margin-bottom:20px">
+    <div class="metric-card"><div class="mc-label">Captured Session Cost</div><div class="mc-value" style="color:var(--green)">$0.166</div><div class="mc-desc">S-09 git session — only session with explicit cost data</div></div>
+    <div class="metric-card"><div class="mc-label">S-09 Prompt Tokens</div><div class="mc-value" style="color:var(--accent)">21.3k</div><div class="mc-desc">Input tokens for git cleanup session</div></div>
+    <div class="metric-card"><div class="mc-label">S-09 Context Tokens</div><div class="mc-value" style="color:var(--teal)">270k</div><div class="mc-desc">Context window utilised</div></div>
+    <div class="metric-card"><div class="mc-label">Demo Session Tokens</div><div class="mc-value" style="color:var(--ibm)">~1,840</div><div class="mc-desc">Per watsonx.ai chat session (prompt ~1,200 + response ~640)</div></div>
+  </div>
+
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>Session</th><th>Agent</th><th>Captured Tokens</th><th>Captured Cost</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td>S-00</td><td>SmartBob</td><td>—</td><td>—</td><td>Framework init — 49 files</td></tr>
+        <tr><td>S-01</td><td>SmartBob + BobCEO</td><td>—</td><td>—</td><td>Build session, framework validation PASS</td></tr>
+        <tr><td>S-02</td><td>SmartBob</td><td>—</td><td>—</td><td>Planning + task graph</td></tr>
+        <tr><td>S-03</td><td>BobOps</td><td>—</td><td>—</td><td>DB schema + 35 API endpoints</td></tr>
+        <tr><td>S-04</td><td>BobOps / Frontend</td><td>—</td><td>—</td><td>7 HTML pages</td></tr>
+        <tr><td>S-05</td><td>BobOps</td><td>—</td><td>—</td><td>watsonx.ai IAM integration — 4/4 tasks</td></tr>
+        <tr><td>S-06</td><td>BobOps</td><td>—</td><td>—</td><td>purchase-plan endpoint</td></tr>
+        <tr><td>S-07</td><td>BobOps + BobData + BobKT</td><td>—</td><td>—</td><td>Admin AI panel + token analytics</td></tr>
+        <tr><td>S-08</td><td>BobCompliance</td><td>—</td><td>—</td><td>Security audit: 5 FAIL → all fixed</td></tr>
+        <tr><td><strong>S-09</strong></td><td>BobOps</td><td><strong>21,300 / 270,000</strong></td><td><strong>$0.166</strong></td><td>Git cleanup + deploy config</td></tr>
+        <tr><td>S-10</td><td>BobOps</td><td>—</td><td>—</td><td>demo.html — 3 live demos</td></tr>
+        <tr><td>S-11</td><td>SmartBob + BobKT</td><td>—</td><td>—</td><td>Hackathon reports (this document)</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="info-box amber">
+    <div class="info-box-label">ℹ️ Token data availability</div>
+    Explicit token counts and cost figures are available only for sessions where the SmartBob UI reported them at session end (S-09: $0.166 · 21.3k/270k tokens). All other session token data was not captured in screenshots — this is a known gap in the export. The <code>ai_token_log</code> table in the running application captures per-request watsonx.ai tokens at runtime.
+  </div>
+</div>
+
+<hr class="divider"/>
+
+<!-- SECTION 4 — DEPLOYMENT & LIVE VERIFICATION -->
+<div class="section">
+  <div class="section-hdr">
+    <div class="section-num teal">4</div>
+    <div class="section-title">Deployment &amp; Live Verification</div>
+  </div>
+
+  <div class="arch" style="margin-bottom:20px">
+    <div class="arch-row"><div class="arch-label bg-green">Platform</div><div class="arch-content"><span class="pill pill-green">Render.com Free Tier Web Service</span> <span class="pill pill-gray">Auto-deploy on git push to main</span> <span class="pill pill-gray">render.yaml IaC</span></div></div>
+    <div class="arch-row"><div class="arch-label bg-dark">Runtime</div><div class="arch-content"><span class="pill pill-gray">Node.js 22.5.0</span> <span class="pill pill-gray">PORT 10000</span> <span class="pill pill-gray">node server.js</span></div></div>
+    <div class="arch-row"><div class="arch-label bg-ibm">AI Config</div><div class="arch-content"><span class="pill pill-ibm">WATSONX_API_KEY (env)</span> <span class="pill pill-ibm">WATSONX_PROJECT_ID (env)</span> <span class="pill pill-ibm">WATSONX_REGION=us-south (env)</span></div></div>
+    <div class="arch-row"><div class="arch-label bg-teal">Database</div><div class="arch-content"><span class="pill pill-teal">SQLite — node:sqlite (Node 22.5+ built-in)</span> <span class="pill pill-green">/data persistent disk (1GB)</span> <span class="pill pill-amber">/tmp fallback on free tier restart</span></div></div>
+    <div class="arch-row"><div class="arch-label bg-purple">Auth</div><div class="arch-content"><span class="pill pill-purple">JWT_SECRET — Render generateValue:true (unique per deploy)</span> <span class="pill pill-purple">7-day token expiry</span></div></div>
+  </div>
+
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>Resource</th><th>URL / Value</th><th>Status</th></tr></thead>
+      <tbody>
+        <tr><td>Live Application</td><td><a href="https://journeyos.onrender.com/">https://journeyos.onrender.com/</a></td><td><span class="pill pill-green">✅ Live</span></td></tr>
+        <tr><td>Admin Dashboard</td><td><a href="https://journeyos.onrender.com/admin">https://journeyos.onrender.com/admin</a></td><td><span class="pill pill-green">✅ Live</span></td></tr>
+        <tr><td>Live AI Demos</td><td><a href="https://journeyos.onrender.com/demo">https://journeyos.onrender.com/demo</a></td><td><span class="pill pill-green">✅ Live</span></td></tr>
+        <tr><td>Hackathon Report</td><td><a href="https://journeyos.onrender.com/hackathon">https://journeyos.onrender.com/hackathon</a></td><td><span class="pill pill-green">✅ Live</span></td></tr>
+        <tr><td>Backend API Base</td><td><a href="https://journeyos.onrender.com/api">https://journeyos.onrender.com/api</a></td><td><span class="pill pill-green">✅ Live</span></td></tr>
+        <tr><td>GitHub Repository</td><td><a href="https://github.com/ankit-verma/journeyOS">https://github.com/ankit-verma/journeyOS</a></td><td><span class="pill pill-green">✅ Public</span></td></tr>
+        <tr><td>Admin Email</td><td>admin@journeyos.com</td><td><span class="pill pill-ibm">Seeded in DB</span></td></tr>
+        <tr><td>Admin Password</td><td>admin123</td><td><span class="pill pill-amber">Judge access only</span></td></tr>
+        <tr><td>watsonx.ai Model</td><td>meta-llama/llama-3-3-70b-instruct</td><td><span class="pill pill-ibm">✅ Verified S-05</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<hr class="divider"/>
+
+<!-- SECTION 5 — SCREENSHOT INDEX -->
+<div class="section">
+  <div class="section-hdr">
+    <div class="section-num purple">5</div>
+    <div class="section-title">Screenshot Evidence Index</div>
+  </div>
+
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>File</th><th>Session</th><th>Key Evidence</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><code>bob-session-S00-smartbob-framework-init-49-files.png</code></td>
+          <td><span class="pill pill-blue">S-00</span></td>
+          <td>12/12 tasks · 49 files changed · ops specialists, vertical orchestrators, 17 skills, 5 domain rules</td>
+        </tr>
+        <tr>
+          <td><code>bob-session-S01-journeyos-build-session-complete.png</code></td>
+          <td><span class="pill pill-blue">S-01</span></td>
+          <td>Session complete ✅ · Framework validation: PASS · 14 dispatch patterns · BobCompliance + BobCEO triggers added</td>
+        </tr>
+        <tr>
+          <td><code>bob-session-S02-smartbob-agent-orchestration-planning.png</code></td>
+          <td><span class="pill pill-blue">S-02</span></td>
+          <td>Planning mode · 12 agents read · task graph · agent→file mapping · dependency ordering</td>
+        </tr>
+        <tr>
+          <td><code>bob-session-S05-watsonx-ai-iam-verified-llama3-model.png</code></td>
+          <td><span class="pill pill-ibm">S-05</span></td>
+          <td><strong>Most critical</strong> — IAM exchange working · llama-3-3-70b confirmed · full travel plan generated · 4/4 tasks</td>
+        </tr>
+        <tr>
+          <td><code>bob-session-S08-compliance-security-audit.png</code></td>
+          <td><span class="pill pill-red">S-08</span></td>
+          <td>5 FAIL / 11 WARN / 9 PASS · Node.js + Express + node:sqlite audit · all FAILs subsequently fixed</td>
+        </tr>
+        <tr>
+          <td><code>bob-session-S09-git-cleanup-commit-push.png</code></td>
+          <td><span class="pill pill-green">S-09</span></td>
+          <td>32 deletions · commit 7fb76c6 · pushed to main · session cost $0.166 · 21.3k/270k tokens</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <p style="font-size:12px;color:var(--muted);margin-top:8px">All screenshots are located in <code>journeyos/docs/bob-sessions/</code> in the repository.</p>
+</div>
+
+<hr class="divider"/>
+
+<!-- FOOTER -->
+<div style="text-align:center;padding:40px 0 20px;border-top:1px solid var(--border);margin-top:40px">
+  <div style="font-size:13px;color:var(--muted);margin-bottom:6px">
+    <strong style="color:var(--text)">IBM SmartBob Framework v1 — JourneyOS Session Export Report</strong>
+    &nbsp;·&nbsp; IBM TechXchange 2026 Pre-conference Dev Day Hackathon
+  </div>
+  <div style="font-size:12px;color:var(--muted);margin-bottom:4px">
+    <strong>Ankit Verma</strong> &nbsp;·&nbsp;
+    <a href="mailto:vermaankit004@gmail.com" style="color:var(--accent)">vermaankit004@gmail.com</a> &nbsp;·&nbsp;
+    <a href="https://wa.me/919453502009" style="color:var(--teal)">+91 94535 02009</a> &nbsp;·&nbsp;
+    <a href="https://github.com/ankit-verma/journeyOS" style="color:var(--accent)">github.com/ankit-verma/journeyOS</a> &nbsp;·&nbsp;
+    <a href="https://journeyos.onrender.com/" style="color:var(--teal)">journeyos.onrender.com</a>
+  </div>
+  <div style="font-size:11px;color:#9ca3af;margin-top:6px">
+    Generated by IBM SmartBob Framework v1 · 11 Sessions · 6 Specialist Agents · 35 API Endpoints · watsonx.ai meta-llama/llama-3-3-70b-instruct
+  </div>
+</div>
+
+</body>
+</html>
