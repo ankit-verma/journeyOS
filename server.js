@@ -13,6 +13,12 @@ const JWT_EXPIRES = '7d';
 
 app.use(cors());
 app.use(express.json());
+
+// Redirect .html → clean URL (must be before static middleware)
+['admin', 'admin-login', 'privacy', 'terms', 'demo'].forEach(page => {
+  app.get(`/${page}.html`, (_req, res) => res.redirect(301, `/${page}`));
+});
+
 app.use(express.static(path.join(__dirname, 'public')));
 
 // ── helpers ────────────────────────────────────────────────────────────────────
@@ -458,18 +464,27 @@ After the JSON, continue with a friendly message inviting them to purchase/book.
     aiReply = generateFallbackReply(messages, systemPrompt, destinations, trips);
   }
 
-  // Save session
+  // ── Token estimation (1 token ≈ 4 chars — standard approximation) ───────────
+  const promptText  = systemPrompt + messages.map(m => m.content).join(' ');
+  const promptTok   = Math.ceil(promptText.length / 4);
+  const responseTok = Math.ceil((aiReply || '').length / 4);
+  const totalTok    = promptTok + responseTok;
+
+  // Save session + log tokens
   if (session_id) {
-    const existing = db.prepare('SELECT id FROM ai_chat_sessions WHERE session_id=?').get(session_id);
-    const allMsgs = JSON.stringify([...messages, { role: 'assistant', content: aiReply }]);
+    const existing = db.prepare('SELECT id, tokens_total FROM ai_chat_sessions WHERE session_id=?').get(session_id);
+    const allMsgs  = JSON.stringify([...messages, { role: 'assistant', content: aiReply }]);
     if (existing) {
-      db.prepare("UPDATE ai_chat_sessions SET messages=?, updated_at=datetime('now') WHERE session_id=?").run(allMsgs, session_id);
+      db.prepare("UPDATE ai_chat_sessions SET messages=?, tokens_total=tokens_total+?, updated_at=datetime('now') WHERE session_id=?")
+        .run(allMsgs, totalTok, session_id);
     } else {
-      db.prepare('INSERT INTO ai_chat_sessions (session_id, messages) VALUES (?,?)').run(session_id, allMsgs);
+      db.prepare('INSERT INTO ai_chat_sessions (session_id, messages, tokens_total) VALUES (?,?,?)').run(session_id, allMsgs, totalTok);
     }
+    db.prepare('INSERT INTO ai_token_log (session_id, provider, prompt_tokens, response_tokens, total_tokens) VALUES (?,?,?,?,?)')
+      .run(session_id, provider, promptTok, responseTok, totalTok);
   }
 
-  ok(res, { reply: aiReply });
+  ok(res, { reply: aiReply, tokens: { prompt: promptTok, response: responseTok, total: totalTok } });
 }
 
 // ── Built-in AI fallback (rule-based travel planner) ─────────────────────────
@@ -477,37 +492,99 @@ function generateFallbackReply(messages, _systemPrompt, destinations, trips) {
   const last = (messages[messages.length - 1]?.content || '').toLowerCase();
   const allMsgs = messages.map(m => m.content.toLowerCase()).join(' ');
 
-  // Detect destination — match seeded DB OR any free-form place name
-  const seededMatch = destinations.find(d =>
-    allMsgs.includes(d.name.toLowerCase()) || allMsgs.includes(d.country.toLowerCase())
-  );
-  // Free-form: "trip to X", "X to Y", "visit X", "go to X", "in X for"
-  const destPhraseMatch = allMsgs.match(
-    /(?:(?:trip|travel|fly|flying|going)\s+(?:to|from)\s*(?:\w+\s+to\s+)?|(?:visit|explore|in)\s+)([a-z][a-z\s]{1,28}?)(?:\s+for\s|\s+\d|\s*,|\s*\.|$)/i
-  );
-  // Also catch bare "X to Y" route pattern (e.g. "delhi to london")
-  const routeMatch = allMsgs.match(/\b([a-z][a-z\s]{1,20}?)\s+to\s+([a-z][a-z\s]{1,20}?)\s/i);
-  const hasDestination = !!seededMatch || !!destPhraseMatch || !!routeMatch;
+  // ── Destination detection ─────────────────────────────────────────────────
+  // Priority: most-recent user message first, then full history.
+  // This prevents an old destination (e.g. Kyoto) overriding a new one (Paris).
+  const userMsgs = messages.filter(m => m.role === 'user');
+  const recentUserTexts = userMsgs.slice(-2).map(m => m.content.toLowerCase()); // last 2 user turns
+  const recentText = recentUserTexts.join(' ');
 
-  // Build destination name for plan
+  function findSeeded(text) {
+    return destinations.find(d =>
+      text.includes(d.name.toLowerCase()) || text.includes(d.country.toLowerCase())
+    );
+  }
+  function findPhrase(text) {
+    // "want to go to X", "go to X", "visit X", "trip to X", "travel to X"
+    const m = text.match(
+      /(?:want(?:ed)?\s+to\s+(?:go\s+to|visit|travel\s+to)|go\s+to|headed\s+to|trip\s+to|travel(?:ling)?\s+to|fly(?:ing)?\s+to|visit(?:ing)?|explore|plan(?:ning)?\s+a?\s*trip\s+to)\s+([a-z][a-z\s]{1,28}?)(?:\s+for\s|\s+\d|\s*,|\s*\.|$)/i
+    );
+    return m;
+  }
+  // Non-place words that should never be matched as a city/country origin in "X to Y"
+  const NOT_PLACE = /^(trip|travel|plan|go|i|we|a|the|my|our|fly|from|how|want|need|looking|thinking|considering|doing|having|taking|make|get|just|also|please|can|could|would|help|book|find|show|tell|give|what|where|when|why|which|this|that|these|those|your|their|his|her|its|solo|family|couple|group|weekend|vacation|holiday|getaway|tour|escape|adventure|luxury|budget|cultural|wellness|romantic|hiking|beach|safari|cruise)$/i;
+  function findRoute(text) {
+    const m = text.match(/\b([a-z][a-z]{2,20}(?:\s[a-z][a-z]{2,15})?)\s+to\s+([a-z][a-z]{2,20}(?:\s[a-z][a-z]{2,15})?)\b/i);
+    if (!m) return null;
+    if (NOT_PLACE.test(m[1].trim())) return null;
+    return m;
+  }
+  // Bare-noun fallback: extract first proper-noun-like word(s) from the message
+  // Used when no verb prefix or route pattern is present — e.g. "Paris 5 days", "Maldives luxury 6 days"
+  const STOP_WORDS = new Set(['trip','travel','plan','a','the','i','we','my','our','for','and','or','but','in','on','at','by','to','of','with','from','go','fly','want','need','help','book','find','show','tell','solo','family','couple','group','romantic','adventure','luxury','budget','cultural','wellness','hiking','beach','safari','cruise','weekend','vacation','holiday','getaway','tour','escape','days','day','nights','night','weeks','week','people','person','travelers','adults','budget','cheap','affordable','premium','high','end','explore','discover']);
+  function findBareNoun(text) {
+    // Try to find first capitalised word or sequence of 1-3 words that look like a place name
+    // Strategy: split on spaces, skip stop-words and numbers, take up to 2 consecutive non-stop words
+    const words = text.replace(/[^a-z\s]/gi, ' ').trim().split(/\s+/);
+    const placeWords = [];
+    for (const w of words) {
+      if (!w || /^\d+$/.test(w)) { if (placeWords.length) break; continue; }
+      if (STOP_WORDS.has(w.toLowerCase())) { if (placeWords.length) break; continue; }
+      placeWords.push(w);
+      if (placeWords.length === 2) break;
+    }
+    return placeWords.length ? placeWords.join(' ') : null;
+  }
+
+  // Check recent messages first, fall back to full history only if nothing found recently
+  const seededMatch     = findSeeded(recentText)   || findSeeded(allMsgs);
+  const destPhraseMatch = findPhrase(recentText)   || findPhrase(allMsgs);
+  const routeMatch      = findRoute(recentText)    || findRoute(allMsgs);
+
+  // If recent text overrides old — re-check: did latest message mention a DIFFERENT destination?
+  const latestSeeded = findSeeded(last);
+  const effectiveSeeded = latestSeeded || seededMatch;
+
+  const hasDestination = !!effectiveSeeded || !!destPhraseMatch || !!routeMatch;
+
+  // Build destination name — latest mention wins
   let detectedDestName, detectedDestCountry = '';
-  if (seededMatch) {
-    detectedDestName = seededMatch.name;
-    detectedDestCountry = seededMatch.country;
+  if (effectiveSeeded) {
+    detectedDestName = effectiveSeeded.name;
+    detectedDestCountry = effectiveSeeded.country;
   } else if (routeMatch) {
     const from = routeMatch[1].trim().replace(/\b\w/g, c => c.toUpperCase());
     const to   = routeMatch[2].trim().replace(/\b\w/g, c => c.toUpperCase());
     detectedDestName = `${from} to ${to}`;
   } else if (destPhraseMatch) {
-    detectedDestName = destPhraseMatch[1].trim().replace(/\b\w/g, c => c.toUpperCase());
+    detectedDestName = destPhraseMatch[1].trim()
+      .replace(/^(trip\s+to\s+|travel\s+to\s+|a\s+trip\s+to\s+)/i, '')
+      .replace(/\b\w/g, c => c.toUpperCase());
   } else {
     detectedDestName = 'Your Destination';
   }
 
+  // Duration — check full history
   const hasDuration = /(\d+)\s*(day|week|night)/i.test(allMsgs);
-  const hasBudget = /budget|cheap|luxury|afford|\$\d+|\d+\s*usd|\d+\s*dollar/i.test(allMsgs);
+  // Budget: explicit amount OR travel style keyword (luxury/adventure/wellness/cultural implies a tier)
+  const hasStyleKeyword = /luxury|premium|high.end|adventure|hike|trek|wellness|yoga|spa|cultural|history|budget.friendly|cheap|affordable/i.test(allMsgs);
+  const hasBudget = hasStyleKeyword || /budget|\$\d+|\d+\s*usd|\d+\s*dollar|afford/i.test(allMsgs);
 
-  const readyToPlan = hasDestination && hasDuration;
+  // If we have duration but no destination yet, try bare-noun extraction from the message with duration
+  let bareNounDest = null;
+  if (!hasDestination && hasDuration) {
+    // Search all user messages for a bare noun
+    for (const um of userMsgs.slice().reverse()) {
+      const bn = findBareNoun(um.content);
+      if (bn && bn.length >= 3) { bareNounDest = bn; break; }
+    }
+  }
+  const effectiveHasDestination = hasDestination || !!bareNounDest;
+  if (!hasDestination && bareNounDest) {
+    detectedDestName = bareNounDest.replace(/\b\w/g, c => c.toUpperCase());
+  }
+
+  const readyToPlan = effectiveHasDestination && hasDuration;
 
   // Greeting: only fire when first message is ONLY a greeting (no destination/duration in it)
   const isFirstMessage = messages.length <= 1;
@@ -527,7 +604,7 @@ To get started, tell me:
 I know all our destinations and trips, so let's create your perfect adventure! 🗺️`;
   }
 
-  if (!hasDestination && !hasDuration && messages.length < 3) {
+  if (!effectiveHasDestination && !hasDuration && messages.length < 3) {
     return `Great question! Let me help you find the perfect trip. 🌟
 
 Here are some of our **most popular destinations**:
@@ -536,7 +613,7 @@ ${destinations.slice(0,4).map(d => `• **${d.name}**, ${d.country} ⭐ ${d.rati
 Or just tell me where you want to go (any city or country works!) and how long you're planning to travel.`;
   }
 
-  if (!hasDestination && messages.length >= 2) {
+  if (!effectiveHasDestination && messages.length >= 2) {
     return `I can plan a trip to **any destination in the world**! Just tell me:
 - Where would you like to go? (e.g. "Delhi to London", "Paris", "Tokyo")
 - How many days?
@@ -545,7 +622,7 @@ Here are some popular picks for inspiration:
 ${destinations.slice(0,3).map(d => `• **${d.name}** — ${d.description.slice(0,80)}...`).join('\n')}`;
   }
 
-  if (hasDestination && !hasDuration) {
+  if (effectiveHasDestination && !hasDuration) {
     return `Great choice — **${detectedDestName || 'that destination'}** sounds amazing! 🎉 How many days are you planning to travel?
 
 Popular durations:
@@ -557,7 +634,7 @@ Popular durations:
 What works best for you?`;
   }
 
-  if (!hasDuration && hasDestination) {
+  if (!hasDuration && effectiveHasDestination) {
     return `Excellent choice! 🎉 Now, how many days are you planning to travel? A longer trip lets us include more highlights and experiences.
 
 Popular durations:
@@ -568,23 +645,41 @@ Popular durations:
 What works best for you?`;
   }
 
-  if (readyToPlan && !hasBudget && messages.length < 6) {
-    return `Almost there! What's your approximate budget per person? This helps me tailor the experience — whether you prefer boutique hotels, mid-range comfort, or luxury resorts.
-
-• **Budget-friendly:** $800–$1,500/person
-• **Mid-range:** $1,500–$3,000/person
-• **Luxury:** $3,000+/person
-
-Which range works for you? Or share a specific amount!`;
-  }
-
   if (readyToPlan) {
-    // Resolve destination object: use seeded or build a synthetic one from the detected name
+    // Duration extraction — also handle "X nights"
+    const durMatch = allMsgs.match(/(\d+)\s*(day|week|night)/i);
+    let durDays = 7;
+    if (durMatch) {
+      const n = parseInt(durMatch[1]);
+      if (durMatch[2].startsWith('week')) durDays = n * 7;
+      else if (durMatch[2].startsWith('night')) durDays = n;
+      else durDays = n;
+    }
+    durDays = Math.max(1, durDays);
+
+    // Style — infer from keywords
+    let style = 'Group Tour';
+    if (/luxury|premium|high.end|5.star|five.star/i.test(allMsgs)) style = 'Luxury';
+    else if (/adventure|hike|trek|outdoor|backpack|camping/i.test(allMsgs)) style = 'Adventure';
+    else if (/wellness|yoga|spa|relax|retreat/i.test(allMsgs)) style = 'Wellness';
+    else if (/cultural|history|art|museum|heritage/i.test(allMsgs)) style = 'Cultural';
+    else if (/solo|alone|myself/i.test(allMsgs)) style = 'Adventure';
+
+    // Travelers
+    const travelMatch = allMsgs.match(/(\d+)\s*(person|people|travell?er|adult|pax)/i);
+    const travelers = travelMatch ? parseInt(travelMatch[1])
+      : /couple|two of us|2 of us/i.test(allMsgs) ? 2
+      : /solo|alone|myself|just me/i.test(allMsgs) ? 1
+      : /family/i.test(allMsgs) ? 4
+      : 2;
+
+    // Resolve destination object
+    const cleanDestName = detectedDestName && detectedDestName !== 'Your Destination' ? detectedDestName : 'Your Destination';
     const dest = seededMatch || {
-      name: detectedDestName || 'Your Destination',
+      name: cleanDestName,
       country: detectedDestCountry || '',
-      tags: 'Sightseeing,Culture,Food',
-      description: `A wonderful journey to ${detectedDestName || 'your chosen destination'}.`,
+      tags: style === 'Adventure' ? 'Hiking,Nature,Adventure' : style === 'Luxury' ? 'Fine Dining,Spa,Exclusive Stays' : style === 'Cultural' ? 'History,Culture,Architecture' : style === 'Wellness' ? 'Spa,Relaxation,Wellness' : 'Sightseeing,Culture,Food',
+      description: `A curated ${style.toLowerCase()} journey through ${cleanDestName}.`,
     };
 
     // Find matching trip by route (best-effort)
@@ -592,31 +687,6 @@ Which range works for you? Or share a specific amount!`;
       t.route.toLowerCase().includes(dest.name.toLowerCase()) ||
       (dest.country && t.route.toLowerCase().includes(dest.country.toLowerCase()))
     );
-
-    // Duration extraction — also handle "X nights"
-    const durMatch = allMsgs.match(/(\d+)\s*(day|week|night)/i);
-    let durDays = 7;
-    if (durMatch) {
-      const n = parseInt(durMatch[1]);
-      if (durMatch[2].startsWith('week')) durDays = n * 7;
-      else if (durMatch[2].startsWith('night')) durDays = n; // nights ≈ days
-      else durDays = n;
-    }
-    durDays = Math.max(1, durDays);
-
-    // Style
-    let style = 'Group Tour';
-    if (/luxury|premium|high.end/i.test(allMsgs)) style = 'Luxury';
-    else if (/adventure|hike|trek|outdoor/i.test(allMsgs)) style = 'Adventure';
-    else if (/wellness|yoga|spa|relax/i.test(allMsgs)) style = 'Wellness';
-    else if (/cultural|history|art|museum/i.test(allMsgs)) style = 'Cultural';
-
-    // Travelers — also detect "X person", "couple" etc.
-    const travelMatch = allMsgs.match(/(\d+)\s*(person|people|travell?er|adult)/i);
-    const travelers = travelMatch ? parseInt(travelMatch[1])
-      : /couple|two of us/.test(allMsgs) ? 2
-      : /solo|alone|myself/.test(allMsgs) ? 1
-      : 2;
 
     // Price calculation
     const basePrice = matchingTrip ? matchingTrip.price : 1800;
@@ -821,12 +891,60 @@ app.get('/api/admin/ai/sessions', requireAdmin, (req, res) => {
   const rows = db.prepare(`
     SELECT s.id, s.session_id, s.created_at, s.updated_at,
            json_array_length(s.messages) as message_count,
+           s.tokens_total,
            u.name as user_name, u.email as user_email
     FROM ai_chat_sessions s
     LEFT JOIN users u ON s.user_id = u.id
     ORDER BY s.updated_at DESC LIMIT 100
   `).all();
   ok(res, rows);
+});
+
+// ── ADMIN: AI token usage stats ───────────────────────────────────────────────
+app.get('/api/admin/ai/token-stats', requireAdmin, (req, res) => {
+  const totals = db.prepare(`
+    SELECT
+      COALESCE(SUM(total_tokens),0)    as total_tokens,
+      COALESCE(SUM(prompt_tokens),0)   as prompt_tokens,
+      COALESCE(SUM(response_tokens),0) as response_tokens,
+      COUNT(*)                          as total_requests,
+      COALESCE(AVG(total_tokens),0)    as avg_tokens_per_request
+    FROM ai_token_log
+  `).get();
+
+  const byProvider = db.prepare(`
+    SELECT provider,
+           COALESCE(SUM(total_tokens),0) as tokens,
+           COUNT(*) as requests
+    FROM ai_token_log GROUP BY provider ORDER BY tokens DESC
+  `).all();
+
+  const byDay = db.prepare(`
+    SELECT DATE(created_at) as day,
+           COALESCE(SUM(total_tokens),0) as tokens,
+           COUNT(*) as requests
+    FROM ai_token_log
+    GROUP BY DATE(created_at)
+    ORDER BY day ASC LIMIT 30
+  `).all();
+
+  const topSessions = db.prepare(`
+    SELECT s.session_id, s.tokens_total,
+           json_array_length(s.messages) as message_count,
+           s.updated_at,
+           u.name as user_name
+    FROM ai_chat_sessions s
+    LEFT JOIN users u ON s.user_id = u.id
+    ORDER BY s.tokens_total DESC LIMIT 10
+  `).all();
+
+  ok(res, { totals, byProvider, byDay, topSessions });
+});
+
+// ── Clean URLs: serve .html files without extension ─────────────────────────
+const PAGES = ['admin', 'admin-login', 'privacy', 'terms', 'demo'];
+PAGES.forEach(page => {
+  app.get(`/${page}`, (_req, res) => res.sendFile(path.join(__dirname, 'public', `${page}.html`)));
 });
 
 // fallback → SPA

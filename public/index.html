@@ -294,6 +294,7 @@
       <li><a href="#trips">Trips</a></li>
       <li><a href="#how-it-works">How It Works</a></li>
       <li><a href="#testimonials">Reviews</a></li>
+      <li><a href="/demo">✦ Live Demos</a></li>
     </ul>
     <div class="nav-right" id="nav-right">
       <!-- populated by updateNavAuth() -->
@@ -483,7 +484,7 @@
         <ul>
           <li><a href="#">Help Center</a></li>
           <li><a href="#">Booking FAQs</a></li>
-          <li><a href="/terms.html#6">Cancellations</a></li>
+          <li><a href="/terms#6">Cancellations</a></li>
           <li><a href="#">Travel Insurance</a></li>
           <li><a href="#">Contact Us</a></li>
         </ul>
@@ -492,9 +493,9 @@
     <div class="footer-bottom">
       <span>&copy; 2025 JourneyOS. All rights reserved.</span>
       <div style="display:flex;gap:20px">
-        <a href="/privacy.html">Privacy Policy</a>
-        <a href="/terms.html">Terms of Service</a>
-        <a href="/terms.html#6">Cancellations</a>
+        <a href="/privacy">Privacy Policy</a>
+        <a href="/terms">Terms of Service</a>
+        <a href="/terms#6">Cancellations</a>
       </div>
     </div>
   </div>
@@ -672,7 +673,7 @@ function updateNavAuth() {
         <div class="nav-avatar">${initials}</div>
         <span>${user.name.split(' ')[0]}</span>
       </div>
-      ${user.role === 'admin' ? '<a href="/admin.html" class="nav-btn" style="color:var(--teal)">&#9783; Admin</a>' : ''}
+      ${user.role === 'admin' ? '<a href="/admin" class="nav-btn" style="color:var(--teal)">&#9783; Admin</a>' : ''}
       <button class="nav-btn" id="btn-logout" style="color:var(--red)">Log out</button>
     `;
     document.getElementById('btn-my-bookings')?.addEventListener('click', openBookingsPanel);
