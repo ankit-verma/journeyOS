@@ -1,101 +1,80 @@
-# IBM Bob Task Session Summary — Screenshot Guide
-## JourneyOS · IBM TechXchange 2026 Hackathon
+# IBM Bob Task Session Summary — Screenshots
+## JourneyOS · IBM TechXchange 2026 Pre-conference Dev Day Hackathon
 
-This directory contains IBM Bob task session summary screenshots for the JourneyOS project.
-
----
-
-## 📸 How to Capture Your IBM Bob Session Summary Screenshots
-
-Follow these steps (from the IBM TechXchange hackathon guide):
-
-### Step 1 — Open the Bob Session Summary
-1. In the IBM Bob interface, locate the **session/task** you want to capture
-2. Click the **task name** or **session title** to expand the full session view
-3. Scroll to ensure the complete task summary is visible
-
-### Step 2 — Capture the Screenshot
-**On Windows:**
-- Press `Win + Shift + S` → select the Bob session area → saves to clipboard
-- Or press `PrtScn` for full screen → paste into an image editor and crop
-- Or use the Snipping Tool (`Win` → search "Snipping Tool")
-
-**On macOS:**
-- Press `Cmd + Shift + 4` → drag to select the Bob session area
-- Screenshot saves automatically to Desktop
-
-**On any OS:**
-- Browser: `Ctrl+P` (or `Cmd+P`) → "Save as PDF" to capture a full-page summary
-
-### Step 3 — Name and Save the File
-Use this naming convention:
-```
-bob-session-S{number}-{short-description}.png
-```
-Examples:
-- `bob-session-S01-schema-design.png`
-- `bob-session-S05-watsonx-integration.png`
-- `bob-session-S09-render-deployment.png`
-
-### Step 4 — Add to This Directory
-Place the screenshot files in this directory:
-```
-journeyos/docs/bob-sessions/
-```
-
-### Step 5 — Commit to Repository
-```bash
-git add journeyos/docs/bob-sessions/
-git commit -m "docs: add IBM Bob session summary screenshots"
-git push origin main
-```
+This directory contains IBM Bob task session summary screenshots captured during the development of JourneyOS.
 
 ---
 
-## 📋 Sessions to Screenshot
+## 📸 Screenshots Included
 
-These are the 11 SmartBob sessions used to build JourneyOS. Capture the session summary for each:
-
-| Session | Description | Priority |
-|---------|-------------|----------|
-| **S-01** | Project discovery — stack detection, schema design, API contract definition | 🔴 High |
-| **S-02** | Express REST API implementation — auth, CRUD endpoints, middleware | 🔴 High |
-| **S-03** | Frontend SPA — index.html with destinations, trips, booking modal | 🟡 Medium |
-| **S-04** | Admin dashboard — analytics, bookings management | 🟡 Medium |
-| **S-05** | AI chatbot integration — watsonx.ai IAM flow, multi-provider routing | 🔴 High |
-| **S-06** | AI purchase-plan endpoint — AI plan → real booking transaction | 🔴 High |
-| **S-07** | Admin AI control panel — settings, knowledge base, token stats | 🟡 Medium |
-| **S-08** | Security audit — secrets handling, JWT, admin guards | 🟡 Medium |
-| **S-09** | Render deployment — render.yaml, env vars, /data persistence | 🔴 High |
-| **S-10** | Interactive demo page — 3 live demos | 🟢 Low |
-| **S-11** | Hackathon demo report generation | 🟢 Low |
-
-> **Minimum requirement:** Capture at least S-01, S-05, S-06, S-09 — these show the most significant use of IBM Bob.
+| File | Session | What It Shows |
+|------|---------|---------------|
+| [bob-session-S00-smartbob-framework-init-49-files.png](#s00) | **S-00** SmartBob `/init` | 12/12 tasks completed · 49 files changed · Full framework initialisation including ops specialists, vertical orchestrators, new skills (requirements, api-contract, ci-pipeline, security-scan, monitoring) and vertical rules (PCI-DSS, GDS, BOPIS) |
+| [bob-session-S01-journeyos-build-session-complete.png](#s01) | **S-01** JourneyOS Build | Session complete ✅ · Framework updates: `.bob/agents/smartbob/smartbob.md` intent→agent dispatch table (14 patterns), BobCompliance activation triggers added, BobCEO structured output format · **Framework validation: PASS** |
+| [bob-session-S02-smartbob-agent-orchestration-planning.png](#s02) | **S-02** Agent Orchestration | SmartBob planning phase: reads 12 journeyos agents, maps each to `sales/` family, builds task graph showing agent→file mapping table, dependency ordering |
+| [bob-session-S05-watsonx-ai-iam-verified-llama3-model.png](#s05) | **S-05** watsonx.ai Integration | **✅ Fully working** · IAM token exchange: Working · Live response from watsonx.ai · model updated from deprecated `ibm/granite-13b-chat-v2` to `meta-llama/llama-3-3-70b-instruct` · 4/4 tasks · end-to-end test: IAM exchange + full travel plan prompt confirmed working |
+| [bob-session-S08-compliance-security-audit.png](#s08) | **S-08** Security & Compliance | Stack: Node.js 24 + Express + node:sqlite + bcryptjs + jsonwebtoken · **5 FAIL** (no Privacy Policy, no ToS, admin credentials, no right-to-erasure, no cancellation policy) · **11 WARN** (JWT fallback, CORS wildcard, XSS risk, no rate limiting) · **9 PASS** (bcrypt, parameterised queries, JWT auth, no SQLi) |
 
 ---
 
-## 📄 Supplementary Reports (Pre-generated)
+## Screenshot Details
 
-These files are already in the repository and cover all session outputs:
+### S-00 — SmartBob Framework Init (49 files changed) {#s00}
+![S-00](bob-session-S00-smartbob-framework-init-49-files.png)
+
+**Key evidence:** SmartBob ran `/init` and completed 12/12 tasks. Shows the full scope of the framework being built — new ops specialists (`data-engineer`, `integration-engineer`, `performance-engineer`), vertical orchestrators (`BobMigrate`, `BobEcommerce`, `BobBanking`, `BobTravel`, `BobRetail`), 17 new/enhanced skills, and 5 domain vertical rules auto-loaded by each mode.
+
+---
+
+### S-01 — JourneyOS Build Session Complete {#s01}
+![S-01](bob-session-S01-journeyos-build-session-complete.png)
+
+**Key evidence:** Session complete ✅ with framework validation PASS. SmartBob updated the intent→agent dispatch table with 14 natural-language trigger patterns (e.g. `"are we compliant"` → BobCompliance, `"as a CEO"` → BobCEO). Shows the multi-agent routing system working in practice on the JourneyOS project.
+
+---
+
+### S-02 — SmartBob Agent Orchestration Planning {#s02}
+![S-02](bob-session-S02-smartbob-agent-orchestration-planning.png)
+
+**Key evidence:** SmartBob in planning mode — discovers the full picture by reading capabilities, reads all 12 existing agents, produces a dependency-mapped task graph, and outputs an agent→file mapping table. Demonstrates SmartBob's "discover before prescribing" principle and parallel workstream planning.
+
+---
+
+### S-05 — watsonx.ai IAM Verified · Llama 3-3-70B Working {#s05}
+![S-05](bob-session-S05-watsonx-ai-iam-verified-llama3-model.png)
+
+**Key evidence:** The most critical screenshot for the hackathon — shows **IBM watsonx.ai fully working**. Bob ran a live test with real credentials (`$apiKey`, `$projectId`), confirmed IAM token exchange working, updated the model from the deprecated `ibm/granite-13b-chat-v2` to `meta-llama/llama-3-3-70b-instruct`, and verified a full travel plan prompt end-to-end. 4/4 tasks completed.
+
+---
+
+### S-08 — Security & Compliance Audit {#s08}
+![S-08](bob-session-S08-compliance-security-audit.png)
+
+**Key evidence:** BobCompliance ran a full audit of the JourneyOS stack (Node.js 24 + Express + node:sqlite). Shows FAIL/WARN/PASS breakdown — the issues flagged were subsequently fixed (Privacy Policy page added, ToS page added, JWT secret moved to env var, CORS tightened). Demonstrates SmartBob's evidence-based compliance assessment.
+
+---
+
+## 📄 Supplementary Reports
+
+These documents contain complete task outputs for all sessions:
 
 | File | Description |
 |------|-------------|
-| [`smartbob-framework-journeyos-demo-report.html`](../../smartbob-framework-journeyos-demo-report.html) | Full exported SmartBob session report — task graph, outputs, token usage, verification evidence |
-| [`journeyos-ibm-techxchange-2026-hackathon-demo.html`](../../journeyos-ibm-techxchange-2026-hackathon-demo.html) | IBM TechXchange hackathon submission PDF — problem/solution, architecture, realtime AI example |
+| [`journeyos-ibm-techxchange-2026-hackathon-demo.html`](../../journeyos-ibm-techxchange-2026-hackathon-demo.html) | PDF-ready hackathon demo — problem/solution, architecture, realtime AI example, all deliverables |
 | [`journeyos-ai-chatbot-feature-demo-configuration-guide.html`](../../journeyos-ai-chatbot-feature-demo-configuration-guide.html) | Live demo configuration guide |
 
-These HTML files can be opened in any browser and **saved as PDF** using `Ctrl+P` → "Save as PDF".
+Open any HTML file in a browser → `Ctrl+P` → **Save as PDF** to generate a PDF for submission.
 
 ---
 
-## ✅ Screenshots Included in This Directory
+## How to add more screenshots
 
-<!-- List your captured screenshots here as you add them -->
-
-| File | Session | Description |
-|------|---------|-------------|
-| *(add your screenshots here)* | | |
+1. In IBM Bob, open the session/task you want to capture
+2. Press `Win+Shift+S` (Windows) or `Cmd+Shift+4` (macOS) to snip
+3. Save as `bob-session-S{number}-{short-description}.png`
+4. Place in this directory
+5. `git add . && git commit -m "docs: add Bob session screenshot" && git push`
 
 ---
 
-*Developer: vermaankit004 · Repository: github.com/ankit-verma/journeyOS*
+*Developer: vermaankit004 · Repository: [github.com/ankit-verma/journeyOS](https://github.com/ankit-verma/journeyOS)*

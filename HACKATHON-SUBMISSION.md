@@ -20,12 +20,20 @@
 
 ### 2. IBM Bob Session Summary Screenshots
 
-- [ ] Screenshots captured from IBM Bob for key sessions (see [`docs/bob-sessions/README.md`](journeyos/docs/bob-sessions/README.md))
-- [ ] Screenshots added to `journeyos/docs/bob-sessions/` directory
+- [x] Screenshots captured from IBM Bob for 5 key sessions
+- [x] Screenshots added to `journeyos/docs/bob-sessions/` directory
 - [ ] Screenshots committed and pushed to GitHub
 
-**Pre-generated reports already in repo (as supplementary evidence):**
-- [x] `smartbob-framework-journeyos-demo-report.html` — full SmartBob session export
+**Screenshots included:**
+| File | Session | Highlights |
+|------|---------|-----------|
+| `bob-session-S00-smartbob-framework-init-49-files.png` | Framework Init | 12/12 tasks, 49 files changed |
+| `bob-session-S01-journeyos-build-session-complete.png` | JourneyOS Build | Session complete ✅, Framework validation: PASS |
+| `bob-session-S02-smartbob-agent-orchestration-planning.png` | Agent Orchestration | Task graph, agent→file mapping, planning |
+| `bob-session-S05-watsonx-ai-iam-verified-llama3-model.png` | **watsonx.ai Integration** | ✅ Fully working, IAM exchange, llama-3-3-70b confirmed |
+| `bob-session-S08-compliance-security-audit.png` | Security Audit | 5 FAIL / 11 WARN / 9 PASS — issues fixed |
+
+**Pre-generated reports also in repo:**
 - [x] `journeyos-ibm-techxchange-2026-hackathon-demo.html` — PDF-ready hackathon demo
 - [x] `journeyos-ai-chatbot-feature-demo-configuration-guide.html` — demo guide
 
