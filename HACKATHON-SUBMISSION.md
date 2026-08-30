@@ -22,22 +22,27 @@
 
 ### 2. IBM Bob Session Summary Screenshots
 
-- [x] Screenshots captured from IBM Bob for 5 key sessions
-- [x] Screenshots added to `journeyos/docs/bob-sessions/` directory
-- [ ] Screenshots committed and pushed to GitHub
+- [x] Screenshots captured from IBM Bob for 6 key sessions
+- [x] Screenshots added to `bob_sessions/` directory (root level)
+- [x] Screenshots committed and pushed to GitHub
+- [x] Bob task export JSON included: `bob_sessions/bob-tasks-smartbob-framework-v1-2026-08-30.json`
 
-**Screenshots included:**
-| File | Session | Highlights |
-|------|---------|-----------|
-| `bob-session-S00-smartbob-framework-init-49-files.png` | Framework Init | 12/12 tasks, 49 files changed |
-| `bob-session-S01-journeyos-build-session-complete.png` | JourneyOS Build | Session complete ✅, Framework validation: PASS |
-| `bob-session-S02-smartbob-agent-orchestration-planning.png` | Agent Orchestration | Task graph, agent→file mapping, planning |
-| `bob-session-S05-watsonx-ai-iam-verified-llama3-model.png` | **watsonx.ai Integration** | ✅ Fully working, IAM exchange, llama-3-3-70b confirmed |
-| `bob-session-S08-compliance-security-audit.png` | Security Audit | 5 FAIL / 11 WARN / 9 PASS — issues fixed |
+**Screenshots included (`bob_sessions/`):**
+| File | Session | Highlights | Tokens / Cost |
+|------|---------|-----------|--------------|
+| `Screenshot 2026-08-30 122007.png` | **S-00** SmartBob `/init` | 12/12 tasks ✅ · 49 files changed · new ops specialists, vertical orchestrators, 17 skills, 5 domain rules | 102.3k / 270k · **$2.94** |
+| `Screenshot 2026-08-30 121453.png` | **S-01** JourneyOS Build | Session complete ✅ · Framework validation: PASS · 14 dispatch patterns added to smartbob.md · BobCompliance + BobCEO triggers | 72.5k / 270k · **$33.39** |
+| `Screenshot 2026-08-30 121718.png` | **S-02** Agent Orchestration | SmartBob planning: reads 12 journeyOS agents, builds task graph, produces agent→sales/ mapping table, dependency ordering | 72.5k / 270k · $33.39 |
+| `Screenshot 2026-08-30 121315.png` | **S-05** watsonx.ai Integration | ✅ **Fully working** — IAM token exchange confirmed, `meta-llama/llama-3-3-70b-instruct` model updated from deprecated granite, live travel plan generated · 4/4 tasks | 135.9k / 270k · **$11.60** |
+| `Screenshot 2026-08-30 121544.png` | **S-08** Compliance Audit | Stack: Node.js 24 + Express + node:sqlite · **5 FAIL** (No Privacy Policy, No ToS, admin credentials, no right-to-erasure, no cancellation policy) · **11 WARN** · **9 PASS** — all FAILs fixed | 72.5k / 270k · $33.39 |
+| `Screenshot 2026-08-30 124217.png` | **S-09** Git Cleanup & Push | `git status` → 32 deletions (temp scripts, logs, unused HTML) · committed `7fb76c6` · pushed to `github.com/ankit-verma/journeyOS` | 21.3k / 270k · **$0.166** |
 
-**Pre-generated reports also in repo:**
-- [x] `journeyos-ibm-techxchange-2026-hackathon-demo.html` — PDF-ready hackathon demo
-- [x] `journeyos-ai-chatbot-feature-demo-configuration-guide.html` — demo guide
+**Reports included (`bob_sessions/`):**
+- [x] `bob_sessions/smartbob-framework-journeyos-demo-report.html` — full SmartBob session export (all 11 sessions, 35 API endpoints, schema, compliance audit)
+- [x] `bob_sessions/bob-tasks-smartbob-framework-v1-2026-08-30.json` — raw Bob task export JSON
+
+**Also at repo root:**
+- [x] `journeyos-ibm-techxchange-2026-hackathon-demo.html` — PDF-ready hackathon demo report
 
 ### 3. Problem & Solution Statements
 
@@ -99,5 +104,7 @@ All of the above should return **no output** (no matches).
 | Live AI Demos | https://journeyos.onrender.com/demo |
 | GitHub Repo | https://github.com/ankit-verma/journeyOS |
 | Hackathon Demo PDF | `journeyos-ibm-techxchange-2026-hackathon-demo.html` (open in browser → Print → Save as PDF) |
-| SmartBob Report | `smartbob-framework-journeyos-demo-report.html` |
-| Bob Sessions Screenshots | `journeyos/docs/bob-sessions/` |
+| SmartBob Session Export | `bob_sessions/smartbob-framework-journeyos-demo-report.html` |
+| Bob Task Export JSON | `bob_sessions/bob-tasks-smartbob-framework-v1-2026-08-30.json` |
+| Bob Session Screenshots | `bob_sessions/` (6 screenshots, root level) |
+| Legacy Screenshots | `journeyos/docs/bob-sessions/` |
