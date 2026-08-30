@@ -92,15 +92,29 @@ db.exec(`
   );
 
   CREATE TABLE IF NOT EXISTS ai_chat_sessions (
-    id         INTEGER PRIMARY KEY AUTOINCREMENT,
-    session_id TEXT NOT NULL UNIQUE,
-    user_id    INTEGER,
-    messages   TEXT NOT NULL DEFAULT '[]',
-    plan_data  TEXT,
-    created_at TEXT NOT NULL DEFAULT (datetime('now')),
-    updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+    id           INTEGER PRIMARY KEY AUTOINCREMENT,
+    session_id   TEXT NOT NULL UNIQUE,
+    user_id      INTEGER,
+    messages     TEXT NOT NULL DEFAULT '[]',
+    plan_data    TEXT,
+    tokens_total INTEGER NOT NULL DEFAULT 0,
+    created_at   TEXT NOT NULL DEFAULT (datetime('now')),
+    updated_at   TEXT NOT NULL DEFAULT (datetime('now'))
+  );
+
+  CREATE TABLE IF NOT EXISTS ai_token_log (
+    id              INTEGER PRIMARY KEY AUTOINCREMENT,
+    session_id      TEXT NOT NULL,
+    provider        TEXT NOT NULL DEFAULT 'bob',
+    prompt_tokens   INTEGER NOT NULL DEFAULT 0,
+    response_tokens INTEGER NOT NULL DEFAULT 0,
+    total_tokens    INTEGER NOT NULL DEFAULT 0,
+    created_at      TEXT NOT NULL DEFAULT (datetime('now'))
   );
 `);
+
+// Runtime migration — add column to existing table if it does not exist yet
+try { db.exec("ALTER TABLE ai_chat_sessions ADD COLUMN tokens_total INTEGER NOT NULL DEFAULT 0"); } catch(_) {}
 
 // ── seed if empty ────────────────────────────────────────────────────────────
 const destCount = db.prepare('SELECT COUNT(*) as c FROM destinations').get().c;
