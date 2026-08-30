@@ -214,13 +214,46 @@
         </div>
       </div>
 
-      <!-- STEP BY STEP -->
+      <!-- STEP BY STEP + TOKEN METER -->
       <div class="card">
         <div class="card-hdr">
           <span class="card-title">📋 How It Works</span>
           <button class="btn btn-secondary" id="d1-reset" style="font-size:12px;padding:5px 12px">↺ Reset</button>
         </div>
         <div class="card-body">
+
+          <!-- Live token meter -->
+          <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px 14px;margin-bottom:16px">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+              <span style="font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px">⚡ Live Token Consumption</span>
+              <span id="d1-tok-provider" style="font-size:11px;background:var(--teal-light);color:var(--teal);padding:2px 8px;border-radius:100px;font-weight:600">IBM BOB</span>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px;margin-bottom:10px">
+              <div style="text-align:center;padding:8px;background:#fff;border-radius:6px;border:1px solid var(--border)">
+                <div id="d1-tok-total" style="font-size:1.2rem;font-weight:800;color:var(--accent)">0</div>
+                <div style="font-size:10px;color:var(--muted)">Total</div>
+              </div>
+              <div style="text-align:center;padding:8px;background:#fff;border-radius:6px;border:1px solid var(--border)">
+                <div id="d1-tok-prompt" style="font-size:1.2rem;font-weight:800;color:var(--teal)">0</div>
+                <div style="font-size:10px;color:var(--muted)">Prompt</div>
+              </div>
+              <div style="text-align:center;padding:8px;background:#fff;border-radius:6px;border:1px solid var(--border)">
+                <div id="d1-tok-response" style="font-size:1.2rem;font-weight:800;color:var(--amber)">0</div>
+                <div style="font-size:10px;color:var(--muted)">Response</div>
+              </div>
+              <div style="text-align:center;padding:8px;background:#fff;border-radius:6px;border:1px solid var(--border)">
+                <div id="d1-tok-turns" style="font-size:1.2rem;font-weight:800;color:var(--purple)">0</div>
+                <div style="font-size:10px;color:var(--muted)">Turns</div>
+              </div>
+            </div>
+            <div style="height:6px;background:var(--border);border-radius:3px;overflow:hidden">
+              <div id="d1-tok-bar" style="height:100%;width:0%;background:linear-gradient(90deg,var(--teal),var(--accent));border-radius:3px;transition:width .4s"></div>
+            </div>
+            <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-top:3px">
+              <span>0</span><span id="d1-tok-bar-label">Budget: 0 / 10,000 tok</span><span>10K</span>
+            </div>
+          </div>
+
           <div class="step-flow" id="d1-steps">
             <div class="step" id="step-greet">
               <div class="step-num">1</div>
@@ -456,6 +489,34 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
 let d1History = [];
 let d1SessionId = 'demo1_' + Date.now();
 let d1StepState = { greet: false, dest: false, plan: false, book: false };
+let d1TokTotal = 0, d1TokPrompt = 0, d1TokResponse = 0, d1TokTurns = 0;
+const D1_TOK_BUDGET = 10000;
+
+function d1UpdateTokenMeter(tokens, provider) {
+  if (!tokens) return;
+  d1TokPrompt   += tokens.prompt   || 0;
+  d1TokResponse += tokens.response || 0;
+  d1TokTotal    += tokens.total    || 0;
+  d1TokTurns    += 1;
+  document.getElementById('d1-tok-total').textContent    = d1TokTotal.toLocaleString();
+  document.getElementById('d1-tok-prompt').textContent   = d1TokPrompt.toLocaleString();
+  document.getElementById('d1-tok-response').textContent = d1TokResponse.toLocaleString();
+  document.getElementById('d1-tok-turns').textContent    = d1TokTurns;
+  const pct = Math.min(100, Math.round(d1TokTotal / D1_TOK_BUDGET * 100));
+  const bar = document.getElementById('d1-tok-bar');
+  bar.style.width = pct + '%';
+  bar.style.background = pct > 80 ? 'var(--red)' : pct > 50 ? 'var(--amber)' : 'linear-gradient(90deg,var(--teal),var(--accent))';
+  document.getElementById('d1-tok-bar-label').textContent = `Budget: ${d1TokTotal.toLocaleString()} / ${D1_TOK_BUDGET.toLocaleString()} tok`;
+  if (provider) {
+    const provNames = { openai:'OpenAI', claude:'Claude', bob:'IBM BOB' };
+    const provColors = { openai:'#eff6ff', claude:'#f5f3ff', bob:'var(--teal-light)' };
+    const provText   = { openai:'#2563eb', claude:'#7c3aed', bob:'var(--teal)' };
+    const el = document.getElementById('d1-tok-provider');
+    el.textContent = provNames[provider] || provider;
+    el.style.background = provColors[provider] || 'var(--surface)';
+    el.style.color = provText[provider] || 'var(--text)';
+  }
+}
 
 function d1SetStep(id, state) { // 'active'|'done'|'wait'
   const el = document.getElementById('step-' + id);
@@ -503,6 +564,9 @@ async function d1Send(text) {
   if (!r.success) { d1AppendMsg('bot', 'Sorry, the AI is unavailable right now. Please check the server.'); return; }
   const reply = r.data.reply;
   d1History.push({ role: 'assistant', content: reply });
+
+  // Update live token meter with data returned by API
+  d1UpdateTokenMeter(r.data.tokens, r.data.provider || 'bob');
 
   // Step tracking
   if (!d1StepState.greet) { d1StepState.greet = true; d1SetStep('greet', 'done'); }
@@ -584,8 +648,15 @@ function d1Chip(t) { d1Send(t); }
 
 document.getElementById('d1-reset').addEventListener('click', () => {
   d1History = []; d1SessionId = 'demo1_' + Date.now();
+  d1TokTotal = 0; d1TokPrompt = 0; d1TokResponse = 0; d1TokTurns = 0;
   document.getElementById('d1-msgs').innerHTML = '';
   document.getElementById('d1-chips').style.display = 'flex';
+  document.getElementById('d1-tok-total').textContent    = '0';
+  document.getElementById('d1-tok-prompt').textContent   = '0';
+  document.getElementById('d1-tok-response').textContent = '0';
+  document.getElementById('d1-tok-turns').textContent    = '0';
+  document.getElementById('d1-tok-bar').style.width      = '0%';
+  document.getElementById('d1-tok-bar-label').textContent = 'Budget: 0 / 10,000 tok';
   Object.keys(d1StepState).forEach(k => { d1StepState[k] = false; d1SetStep(k, 'wait'); });
 });
 

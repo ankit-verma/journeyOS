@@ -496,6 +496,47 @@
         </div>
       </div>
 
+      <!-- Token consumption stats row -->
+      <div class="stat-grid" style="margin-bottom:20px">
+        <div class="stat-card">
+          <div class="stat-card-top"><span class="stat-label">Total Tokens Used</span><div class="stat-icon icon-blue">&#128290;</div></div>
+          <div class="stat-value" id="tok-total">—</div>
+          <div class="stat-sub">All providers combined</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-top"><span class="stat-label">Prompt Tokens</span><div class="stat-icon icon-teal">&#8593;</div></div>
+          <div class="stat-value" id="tok-prompt">—</div>
+          <div class="stat-sub">Input (context + user)</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-top"><span class="stat-label">Response Tokens</span><div class="stat-icon icon-amber">&#8595;</div></div>
+          <div class="stat-value" id="tok-response">—</div>
+          <div class="stat-sub">Output (AI replies)</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-top"><span class="stat-label">Avg / Request</span><div class="stat-icon icon-purple">&#126;</div></div>
+          <div class="stat-value" id="tok-avg">—</div>
+          <div class="stat-sub">Tokens per chat turn</div>
+        </div>
+      </div>
+
+      <!-- Token consumption chart + provider breakdown -->
+      <div style="display:grid;grid-template-columns:2fr 1fr;gap:18px;margin-bottom:18px">
+        <div class="card">
+          <div class="card-header"><span class="card-title">&#128200; Token Consumption — Last 30 Days</span></div>
+          <div style="padding:16px">
+            <canvas id="tok-chart" height="160"></canvas>
+            <div id="tok-chart-empty" style="display:none;text-align:center;padding:40px;color:var(--muted);font-size:13px">No token data yet — start chatting!</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><span class="card-title">&#127381; By Provider</span></div>
+          <div style="padding:16px;display:flex;flex-direction:column;gap:10px" id="tok-by-provider">
+            <div style="color:var(--muted);font-size:13px">Loading…</div>
+          </div>
+        </div>
+      </div>
+
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:18px">
 
         <!-- AI Provider Settings -->
@@ -597,9 +638,9 @@
         </div>
         <div style="overflow-x:auto">
           <table>
-            <thead><tr><th>#</th><th>Session ID</th><th>User</th><th>Messages</th><th>Started</th><th>Last Active</th></tr></thead>
+            <thead><tr><th>#</th><th>Session ID</th><th>User</th><th>Messages</th><th>Tokens Used</th><th>Started</th><th>Last Active</th></tr></thead>
             <tbody id="ai-sessions-body">
-              <tr><td colspan="6" class="table-empty"><div class="loader"><span class="spinner"></span>Loading…</div></td></tr>
+              <tr><td colspan="7" class="table-empty"><div class="loader"><span class="spinner"></span>Loading…</div></td></tr>
             </tbody>
           </table>
         </div>
@@ -1170,11 +1211,13 @@ document.getElementById('users-search').addEventListener('input', renderUsers);
 // ════════════════════════════════════════════════════════════════════════════
 // AI CHATBOT SETTINGS
 // ════════════════════════════════════════════════════════════════════════════
+let tokChart = null;
 async function loadAiChatbot() {
-  const [settingsRes, knowledgeRes, sessionsRes] = await Promise.all([
+  const [settingsRes, knowledgeRes, sessionsRes, tokenRes] = await Promise.all([
     api('/api/admin/ai/settings'),
     api('/api/admin/ai/knowledge'),
     api('/api/admin/ai/sessions'),
+    api('/api/admin/ai/token-stats'),
   ]);
 
   if (settingsRes.success) {
@@ -1192,28 +1235,93 @@ async function loadAiChatbot() {
     cb.checked = enabled;
     updateToggleUI(enabled);
 
-    document.getElementById('ai-s-status').textContent  = enabled ? 'Active' : 'Disabled';
-    document.getElementById('ai-s-status').style.color  = enabled ? 'var(--green)' : 'var(--red)';
+    document.getElementById('ai-s-status').textContent   = enabled ? 'Active' : 'Disabled';
+    document.getElementById('ai-s-status').style.color   = enabled ? 'var(--green)' : 'var(--red)';
     document.getElementById('ai-s-provider').textContent = 'Provider: ' + (s.provider || 'openai');
-    document.getElementById('ai-s-freq').textContent    = s.retrain_freq || 'daily';
-    document.getElementById('ai-s-trained').textContent = s.last_trained ? fmtDate(s.last_trained) : 'Never';
+    document.getElementById('ai-s-freq').textContent     = s.retrain_freq || 'daily';
+    document.getElementById('ai-s-trained').textContent  = s.last_trained ? fmtDate(s.last_trained) : 'Never';
   }
 
   if (sessionsRes.success) {
     document.getElementById('ai-s-sessions').textContent = sessionsRes.data.length;
     const tbody = document.getElementById('ai-sessions-body');
     if (!sessionsRes.data.length) {
-      tbody.innerHTML = '<tr><td colspan="6" class="table-empty">No chat sessions yet.</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="7" class="table-empty">No chat sessions yet.</td></tr>';
     } else {
-      tbody.innerHTML = sessionsRes.data.map((s, i) => `
-        <tr>
+      tbody.innerHTML = sessionsRes.data.map((s, i) => {
+        const tok = s.tokens_total || 0;
+        const tokColor = tok > 5000 ? 'var(--red)' : tok > 2000 ? 'var(--amber)' : 'var(--green)';
+        return `<tr>
           <td>${i+1}</td>
           <td><code style="font-size:11px">${s.session_id.slice(0,20)}…</code></td>
           <td>${s.user_name ? `<strong>${s.user_name}</strong><br><small style="color:var(--muted)">${s.user_email}</small>` : '<span style="color:var(--muted)">Guest</span>'}</td>
           <td><span class="badge badge-blue">${s.message_count || 0} msgs</span></td>
+          <td><span style="font-weight:700;color:${tokColor}">${tok.toLocaleString()}</span><span style="font-size:10px;color:var(--muted)"> tok</span></td>
           <td>${fmtDate(s.created_at)}</td>
           <td>${fmtDate(s.updated_at)}</td>
-        </tr>`).join('');
+        </tr>`;
+      }).join('');
+    }
+  }
+
+  if (tokenRes.success) {
+    const t = tokenRes.data;
+    const fmt = n => n >= 1000 ? (n/1000).toFixed(1)+'K' : n;
+    document.getElementById('tok-total').textContent    = fmt(t.totals.total_tokens);
+    document.getElementById('tok-prompt').textContent   = fmt(t.totals.prompt_tokens);
+    document.getElementById('tok-response').textContent = fmt(t.totals.response_tokens);
+    document.getElementById('tok-avg').textContent      = Math.round(t.totals.avg_tokens_per_request || 0);
+
+    // Provider breakdown bars
+    const provEl = document.getElementById('tok-by-provider');
+    const maxTok = Math.max(...(t.byProvider.map(p => p.tokens)), 1);
+    const pColors = { openai:'#2563eb', claude:'#7c3aed', bob:'#0d9488' };
+    provEl.innerHTML = t.byProvider.length ? t.byProvider.map(p => `
+      <div>
+        <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px">
+          <span style="font-weight:600;text-transform:capitalize">${p.provider}</span>
+          <span style="color:var(--muted)">${p.tokens.toLocaleString()} tok · ${p.requests} req</span>
+        </div>
+        <div style="height:8px;background:var(--border);border-radius:4px;overflow:hidden">
+          <div style="height:100%;width:${Math.round(p.tokens/maxTok*100)}%;background:${pColors[p.provider]||'var(--accent)'};border-radius:4px;transition:width .5s"></div>
+        </div>
+      </div>`).join('')
+    : '<div style="color:var(--muted);font-size:13px">No token data yet.</div>';
+
+    // Daily chart
+    if (t.byDay.length) {
+      document.getElementById('tok-chart-empty').style.display = 'none';
+      const labels = t.byDay.map(d => d.day);
+      const data   = t.byDay.map(d => d.tokens);
+      if (tokChart) tokChart.destroy();
+      tokChart = new Chart(document.getElementById('tok-chart'), {
+        type: 'bar',
+        data: {
+          labels,
+          datasets: [{
+            label: 'Tokens',
+            data,
+            backgroundColor: 'rgba(37,99,235,0.7)',
+            borderColor: '#2563eb',
+            borderWidth: 1,
+            borderRadius: 4,
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: { display: false },
+            tooltip: { callbacks: { label: ctx => ' ' + ctx.parsed.y.toLocaleString() + ' tokens' } }
+          },
+          scales: {
+            y: { beginAtZero: true, ticks: { callback: v => v >= 1000 ? (v/1000).toFixed(0)+'K' : v } },
+            x: { ticks: { font: { size: 10 } } }
+          }
+        }
+      });
+    } else {
+      document.getElementById('tok-chart-empty').style.display = 'block';
+      document.getElementById('tok-chart').style.display = 'none';
     }
   }
 

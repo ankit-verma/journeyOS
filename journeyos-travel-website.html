@@ -1,0 +1,783 @@
+
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>JourneyOS — Discover the World</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #ffffff;
+    --surface: #f7f8fa;
+    --border: #e5e7eb;
+    --text: #1f2328;
+    --muted: #57606a;
+    --accent: #2563eb;
+    --accent-dark: #1d4ed8;
+    --accent-light: #eff6ff;
+    --teal: #0d9488;
+    --teal-light: #f0fdfa;
+    --amber: #d97706;
+    --radius: 12px;
+    --radius-sm: 8px;
+    --shadow: 0 1px 3px rgba(0,0,0,.08), 0 4px 12px rgba(0,0,0,.06);
+    --shadow-lg: 0 8px 32px rgba(0,0,0,.12);
+    --font: -apple-system, "Segoe UI", system-ui, sans-serif;
+  }
+
+  body { font-family: var(--font); font-size: 15px; line-height: 1.6; color: var(--text); background: var(--bg); }
+
+  /* ── NAV ── */
+  nav {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(255,255,255,.95);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--border);
+    padding: 0 24px;
+  }
+  .nav-inner {
+    max-width: 1100px; margin: 0 auto;
+    display: flex; align-items: center; justify-content: space-between;
+    height: 60px;
+  }
+  .logo { font-size: 1.25rem; font-weight: 700; color: var(--accent); letter-spacing: -.5px; }
+  .logo span { color: var(--teal); }
+  .nav-links { display: flex; gap: 28px; list-style: none; }
+  .nav-links a { text-decoration: none; color: var(--muted); font-size: 14px; font-weight: 500; transition: color .2s; }
+  .nav-links a:hover { color: var(--accent); }
+  .nav-cta {
+    background: var(--accent); color: #fff;
+    border: none; border-radius: var(--radius-sm);
+    padding: 8px 18px; font-size: 14px; font-weight: 600;
+    cursor: pointer; text-decoration: none;
+  }
+
+  /* ── HERO ── */
+  .hero {
+    background: linear-gradient(135deg, #1e3a5f 0%, #0d4c73 40%, #0d9488 100%);
+    color: #fff;
+    padding: 80px 24px 100px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Ccircle cx='30' cy='30' r='20'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    pointer-events: none;
+  }
+  .hero-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: rgba(255,255,255,.15); border: 1px solid rgba(255,255,255,.25);
+    border-radius: 100px; padding: 4px 14px; font-size: 13px; font-weight: 500;
+    margin-bottom: 24px; color: rgba(255,255,255,.9);
+  }
+  .hero h1 {
+    font-size: clamp(2rem, 5vw, 3.5rem);
+    font-weight: 800; letter-spacing: -1px;
+    line-height: 1.15; margin-bottom: 20px;
+  }
+  .hero h1 em { font-style: normal; color: #5eead4; }
+  .hero p {
+    max-width: 520px; margin: 0 auto 36px;
+    color: rgba(255,255,255,.8); font-size: 1.05rem;
+  }
+  .hero-actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+  .btn-primary {
+    background: #fff; color: var(--accent);
+    border: none; border-radius: var(--radius-sm);
+    padding: 12px 28px; font-size: 15px; font-weight: 700;
+    cursor: pointer; text-decoration: none;
+  }
+  .btn-outline {
+    background: transparent; color: #fff;
+    border: 1.5px solid rgba(255,255,255,.5);
+    border-radius: var(--radius-sm);
+    padding: 12px 28px; font-size: 15px; font-weight: 600;
+    cursor: pointer; text-decoration: none;
+  }
+  .hero-stats {
+    display: flex; gap: 40px; justify-content: center;
+    margin-top: 60px; flex-wrap: wrap;
+  }
+  .hero-stat { text-align: center; }
+  .hero-stat strong { display: block; font-size: 1.75rem; font-weight: 800; }
+  .hero-stat span { font-size: 13px; color: rgba(255,255,255,.7); }
+
+  /* ── SEARCH BAR ── */
+  .search-section { max-width: 860px; margin: -36px auto 0; padding: 0 24px; position: relative; z-index: 10; }
+  .search-card {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-lg);
+    padding: 20px 24px;
+  }
+  .search-tabs { display: flex; gap: 4px; margin-bottom: 16px; }
+  .search-tab {
+    padding: 6px 16px; border-radius: 6px; font-size: 13px; font-weight: 600;
+    cursor: pointer; border: none; background: transparent; color: var(--muted);
+  }
+  .search-tab.active { background: var(--accent-light); color: var(--accent); }
+  .search-row { display: grid; grid-template-columns: 1fr 1fr 1fr auto; gap: 12px; align-items: end; }
+  .search-field label { display: block; font-size: 12px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 6px; }
+  .search-field input, .search-field select {
+    width: 100%; padding: 10px 12px;
+    border: 1.5px solid var(--border); border-radius: var(--radius-sm);
+    font-size: 14px; font-family: var(--font); color: var(--text);
+    background: var(--bg); outline: none;
+  }
+  .search-field input:focus, .search-field select:focus { border-color: var(--accent); }
+  .search-btn {
+    background: var(--accent); color: #fff;
+    border: none; border-radius: var(--radius-sm);
+    padding: 11px 24px; font-size: 14px; font-weight: 700;
+    cursor: pointer; white-space: nowrap;
+  }
+
+  /* ── SECTIONS ── */
+  section { padding: 72px 24px; }
+  .section-inner { max-width: 1100px; margin: 0 auto; }
+  .section-header { text-align: center; margin-bottom: 48px; }
+  .section-label {
+    display: inline-block; font-size: 12px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 1px;
+    color: var(--teal); margin-bottom: 10px;
+  }
+  .section-header h2 { font-size: clamp(1.5rem, 3vw, 2.25rem); font-weight: 800; letter-spacing: -.5px; }
+  .section-header p { color: var(--muted); margin-top: 10px; max-width: 480px; margin-left: auto; margin-right: auto; }
+
+  /* ── DESTINATIONS ── */
+  .destinations-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 24px;
+  }
+  .dest-card {
+    border-radius: var(--radius);
+    overflow: hidden;
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow);
+    background: #fff;
+    cursor: pointer;
+  }
+  .dest-image {
+    height: 180px;
+    display: flex; align-items: flex-end;
+    padding: 16px;
+    position: relative;
+  }
+  .dest-badge {
+    position: absolute; top: 12px; right: 12px;
+    background: rgba(0,0,0,.5); color: #fff;
+    border-radius: 100px; padding: 3px 10px; font-size: 12px; font-weight: 600;
+  }
+  .dest-name {
+    color: #fff; font-size: 1.25rem; font-weight: 700;
+    text-shadow: 0 1px 4px rgba(0,0,0,.5);
+    position: relative; z-index: 1;
+  }
+  .dest-body { padding: 16px; }
+  .dest-meta { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+  .dest-country { font-size: 13px; color: var(--muted); font-weight: 500; }
+  .dest-rating { font-size: 13px; font-weight: 700; color: var(--amber); }
+  .dest-desc { font-size: 13px; color: var(--muted); line-height: 1.5; margin-bottom: 12px; }
+  .dest-tags { display: flex; gap: 6px; flex-wrap: wrap; }
+  .tag {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 100px; padding: 2px 10px; font-size: 12px; font-weight: 500; color: var(--muted);
+  }
+
+  /* Color palettes for destination cards */
+  .dest-bg-1 { background: linear-gradient(160deg, #1e3a5f, #0d9488); }
+  .dest-bg-2 { background: linear-gradient(160deg, #7c3aed, #db2777); }
+  .dest-bg-3 { background: linear-gradient(160deg, #b45309, #d97706); }
+  .dest-bg-4 { background: linear-gradient(160deg, #065f46, #0d9488); }
+  .dest-bg-5 { background: linear-gradient(160deg, #1e40af, #6d28d9); }
+  .dest-bg-6 { background: linear-gradient(160deg, #9f1239, #c2410c); }
+
+  /* ── FEATURED TRIPS ── */
+  .trips-section { background: var(--surface); }
+  .trips-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 24px; }
+  .trip-card {
+    background: #fff; border: 1px solid var(--border);
+    border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden;
+  }
+  .trip-header {
+    padding: 20px 20px 16px;
+    display: flex; justify-content: space-between; align-items: flex-start;
+  }
+  .trip-type {
+    font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px;
+    color: var(--teal); background: var(--teal-light);
+    border-radius: 100px; padding: 3px 10px; margin-bottom: 8px; display: inline-block;
+  }
+  .trip-title { font-size: 1.05rem; font-weight: 700; }
+  .trip-price { font-size: 1.25rem; font-weight: 800; color: var(--accent); text-align: right; }
+  .trip-price small { display: block; font-size: 11px; font-weight: 500; color: var(--muted); }
+  .trip-divider { border: none; border-top: 1px solid var(--border); }
+  .trip-body { padding: 16px 20px 20px; }
+  .trip-info { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+  .trip-info-item { font-size: 13px; color: var(--muted); }
+  .trip-info-item strong { display: block; color: var(--text); font-size: 14px; }
+  .trip-highlights { margin-bottom: 16px; }
+  .trip-highlights p { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; color: var(--muted); margin-bottom: 8px; }
+  .trip-highlights ul { list-style: none; display: flex; flex-direction: column; gap: 4px; }
+  .trip-highlights li { font-size: 13px; color: var(--text); display: flex; align-items: center; gap: 6px; }
+  .trip-highlights li::before { content: '✓'; color: var(--teal); font-weight: 700; flex-shrink: 0; }
+  .trip-footer { display: flex; justify-content: space-between; align-items: center; }
+  .trip-slots { font-size: 13px; color: var(--amber); font-weight: 600; }
+  .btn-book {
+    background: var(--accent); color: #fff;
+    border: none; border-radius: var(--radius-sm);
+    padding: 8px 20px; font-size: 13px; font-weight: 700; cursor: pointer;
+  }
+
+  /* ── HOW IT WORKS ── */
+  .steps-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 32px; }
+  .step { text-align: center; }
+  .step-num {
+    width: 52px; height: 52px; border-radius: 50%;
+    background: var(--accent-light); color: var(--accent);
+    font-size: 1.25rem; font-weight: 800;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 16px;
+  }
+  .step h3 { font-size: 1rem; font-weight: 700; margin-bottom: 8px; }
+  .step p { font-size: 13px; color: var(--muted); }
+
+  /* ── TESTIMONIALS ── */
+  .testimonials-section { background: var(--surface); }
+  .testimonials-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 24px; }
+  .testimonial-card {
+    background: #fff; border: 1px solid var(--border);
+    border-radius: var(--radius); box-shadow: var(--shadow); padding: 24px;
+  }
+  .testimonial-stars { color: var(--amber); font-size: 1rem; margin-bottom: 12px; }
+  .testimonial-quote { font-size: 14px; color: var(--text); line-height: 1.65; margin-bottom: 20px; font-style: italic; }
+  .testimonial-author { display: flex; align-items: center; gap: 12px; }
+  .author-avatar {
+    width: 40px; height: 40px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1rem; font-weight: 700; color: #fff; flex-shrink: 0;
+  }
+  .avatar-blue { background: var(--accent); }
+  .avatar-teal { background: var(--teal); }
+  .avatar-purple { background: #7c3aed; }
+  .avatar-amber { background: var(--amber); }
+  .author-name { font-size: 14px; font-weight: 700; }
+  .author-trip { font-size: 12px; color: var(--muted); }
+
+  /* ── NEWSLETTER ── */
+  .newsletter-section {
+    background: linear-gradient(135deg, #1e3a5f 0%, #0d4c73 100%);
+    color: #fff; text-align: center;
+  }
+  .newsletter-section h2 { font-size: clamp(1.4rem, 3vw, 2rem); font-weight: 800; margin-bottom: 12px; }
+  .newsletter-section p { color: rgba(255,255,255,.75); margin-bottom: 28px; }
+  .newsletter-form { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; max-width: 480px; margin: 0 auto; }
+  .newsletter-form input {
+    flex: 1; min-width: 200px; padding: 11px 16px;
+    border: 1.5px solid rgba(255,255,255,.3); border-radius: var(--radius-sm);
+    background: rgba(255,255,255,.1); color: #fff;
+    font-size: 14px; font-family: var(--font); outline: none;
+  }
+  .newsletter-form input::placeholder { color: rgba(255,255,255,.5); }
+  .newsletter-form button {
+    background: #fff; color: var(--accent);
+    border: none; border-radius: var(--radius-sm);
+    padding: 11px 24px; font-size: 14px; font-weight: 700; cursor: pointer;
+    white-space: nowrap;
+  }
+
+  /* ── FOOTER ── */
+  footer {
+    background: #111827; color: rgba(255,255,255,.65);
+    padding: 48px 24px 32px;
+  }
+  .footer-inner { max-width: 1100px; margin: 0 auto; }
+  .footer-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 40px; margin-bottom: 40px; }
+  .footer-brand .logo { font-size: 1.15rem; display: block; margin-bottom: 12px; color: #fff; }
+  .footer-brand p { font-size: 13px; line-height: 1.7; }
+  .footer-col h4 { color: #fff; font-size: 13px; font-weight: 700; margin-bottom: 14px; text-transform: uppercase; letter-spacing: .5px; }
+  .footer-col ul { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+  .footer-col a { text-decoration: none; color: rgba(255,255,255,.6); font-size: 13px; }
+  .footer-col a:hover { color: #fff; }
+  .footer-bottom {
+    border-top: 1px solid rgba(255,255,255,.1);
+    padding-top: 24px;
+    display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;
+    font-size: 13px;
+  }
+  .footer-bottom a { color: rgba(255,255,255,.5); text-decoration: none; }
+
+  /* ── MADE WITH ── */
+  .made-with {
+    text-align: center; font-size: 12px; color: rgba(255,255,255,.35);
+    padding-top: 24px; margin-top: 12px;
+    border-top: 1px solid rgba(255,255,255,.08);
+  }
+
+  @media (max-width: 700px) {
+    .search-row { grid-template-columns: 1fr 1fr; }
+    .search-btn { grid-column: 1 / -1; }
+    .footer-grid { grid-template-columns: 1fr 1fr; }
+    .nav-links { display: none; }
+  }
+</style>
+</head>
+<body>
+
+
+<nav>
+  <div class="nav-inner">
+    <span class="logo">Journey<span>OS</span></span>
+    <ul class="nav-links">
+      <li><a href="#">Destinations</a></li>
+      <li><a href="#">Trips</a></li>
+      <li><a href="#">Experiences</a></li>
+      <li><a href="#">Guides</a></li>
+      <li><a href="#">About</a></li>
+    </ul>
+    <a href="#" class="nav-cta">Sign up free</a>
+  </div>
+</nav>
+
+
+<div class="hero">
+  <div class="hero-badge">✦ 50,000+ happy travelers in 2024</div>
+  <h1>Discover Your Next<br /><em>Great Adventure</em></h1>
+  <p>Curated trips, expert guides, and seamless booking — everything you need to explore the world with confidence.</p>
+  <div class="hero-actions">
+    <a href="#" class="btn-primary">Explore Destinations</a>
+    <a href="#" class="btn-outline">Watch how it works</a>
+  </div>
+  <div class="hero-stats">
+    <div class="hero-stat"><strong>120+</strong><span>Countries</span></div>
+    <div class="hero-stat"><strong>4,800+</strong><span>Curated Trips</span></div>
+    <div class="hero-stat"><strong>98%</strong><span>Satisfaction</span></div>
+    <div class="hero-stat"><strong>24/7</strong><span>Support</span></div>
+  </div>
+</div>
+
+
+<div class="search-section">
+  <div class="search-card">
+    <div class="search-tabs">
+      <button class="search-tab active">Destinations</button>
+      <button class="search-tab">Group Tours</button>
+      <button class="search-tab">Adventure</button>
+      <button class="search-tab">Luxury</button>
+    </div>
+    <div class="search-row">
+      <div class="search-field">
+        <label>Where to?</label>
+        <input type="text" />
+      </div>
+      <div class="search-field">
+        <label>When</label>
+        <input type="text" />
+      </div>
+      <div class="search-field">
+        <label>Trip Length</label>
+        <select>
+          <option>Any duration</option>
+          <option>Weekend (1–3 days)</option>
+          <option>Short (4–7 days)</option>
+          <option>Medium (8–14 days)</option>
+          <option>Long (15+ days)</option>
+        </select>
+      </div>
+      <button class="search-btn">Search</button>
+    </div>
+  </div>
+</div>
+
+
+<section>
+  <div class="section-inner">
+    <div class="section-header">
+      <span class="section-label">Top Picks</span>
+      <h2>Popular Destinations</h2>
+      <p>Hand-picked places loved by our community of explorers worldwide.</p>
+    </div>
+    <div class="destinations-grid">
+
+      <div class="dest-card">
+        <div class="dest-image dest-bg-1">
+          <span class="dest-badge">Trending</span>
+          <span class="dest-name">Kyoto</span>
+        </div>
+        <div class="dest-body">
+          <div class="dest-meta">
+            <span class="dest-country">Japan, Asia</span>
+            <span class="dest-rating">★ 4.9</span>
+          </div>
+          <p class="dest-desc">Ancient temples, zen gardens, and cherry blossoms in Japan's cultural capital.</p>
+          <div class="dest-tags">
+            <span class="tag">Culture</span><span class="tag">History</span><span class="tag">Food</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="dest-card">
+        <div class="dest-image dest-bg-2">
+          <span class="dest-badge">Favourite</span>
+          <span class="dest-name">Santorini</span>
+        </div>
+        <div class="dest-body">
+          <div class="dest-meta">
+            <span class="dest-country">Greece, Europe</span>
+            <span class="dest-rating">★ 4.8</span>
+          </div>
+          <p class="dest-desc">Iconic blue-domed churches, caldera sunsets, and crystal-clear Aegean waters.</p>
+          <div class="dest-tags">
+            <span class="tag">Beach</span><span class="tag">Romantic</span><span class="tag">Views</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="dest-card">
+        <div class="dest-image dest-bg-3">
+          <span class="dest-badge">Hot Deal</span>
+          <span class="dest-name">Marrakech</span>
+        </div>
+        <div class="dest-body">
+          <div class="dest-meta">
+            <span class="dest-country">Morocco, Africa</span>
+            <span class="dest-rating">★ 4.7</span>
+          </div>
+          <p class="dest-desc">Vibrant souks, riads, and the magical medina of Morocco's "Red City".</p>
+          <div class="dest-tags">
+            <span class="tag">Markets</span><span class="tag">Culture</span><span class="tag">Food</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="dest-card">
+        <div class="dest-image dest-bg-4">
+          <span class="dest-badge">New</span>
+          <span class="dest-name">Patagonia</span>
+        </div>
+        <div class="dest-body">
+          <div class="dest-meta">
+            <span class="dest-country">Argentina, South America</span>
+            <span class="dest-rating">★ 4.9</span>
+          </div>
+          <p class="dest-desc">Dramatic glaciers, jagged peaks, and vast untouched wilderness at the end of the world.</p>
+          <div class="dest-tags">
+            <span class="tag">Hiking</span><span class="tag">Adventure</span><span class="tag">Wildlife</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="dest-card">
+        <div class="dest-image dest-bg-5">
+          <span class="dest-badge">Trending</span>
+          <span class="dest-name">Amalfi Coast</span>
+        </div>
+        <div class="dest-body">
+          <div class="dest-meta">
+            <span class="dest-country">Italy, Europe</span>
+            <span class="dest-rating">★ 4.8</span>
+          </div>
+          <p class="dest-desc">Clifftop villages, lemon groves, and turquoise coves on Italy's most scenic coastline.</p>
+          <div class="dest-tags">
+            <span class="tag">Scenic</span><span class="tag">Food</span><span class="tag">Sailing</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="dest-card">
+        <div class="dest-image dest-bg-6">
+          <span class="dest-badge">Limited</span>
+          <span class="dest-name">Bali</span>
+        </div>
+        <div class="dest-body">
+          <div class="dest-meta">
+            <span class="dest-country">Indonesia, Asia</span>
+            <span class="dest-rating">★ 4.7</span>
+          </div>
+          <p class="dest-desc">Sacred temples, terraced rice fields, world-class surf, and vibrant spiritual culture.</p>
+          <div class="dest-tags">
+            <span class="tag">Wellness</span><span class="tag">Surf</span><span class="tag">Culture</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+
+<section class="trips-section">
+  <div class="section-inner">
+    <div class="section-header">
+      <span class="section-label">Curated Itineraries</span>
+      <h2>Featured Trips</h2>
+      <p>Expert-crafted itineraries so every day of your journey is unforgettable.</p>
+    </div>
+    <div class="trips-grid">
+
+      <div class="trip-card">
+        <div class="trip-header">
+          <div>
+            <span class="trip-type">Group Tour</span>
+            <div class="trip-title">Japan in Full Bloom</div>
+          </div>
+          <div class="trip-price">$2,890<small>per person</small></div>
+        </div>
+        <hr class="trip-divider" />
+        <div class="trip-body">
+          <div class="trip-info">
+            <div class="trip-info-item"><strong>14 Days</strong>Duration</div>
+            <div class="trip-info-item"><strong>Apr–May</strong>Best Season</div>
+            <div class="trip-info-item"><strong>Tokyo → Kyoto</strong>Route</div>
+            <div class="trip-info-item"><strong>12 people</strong>Max Group</div>
+          </div>
+          <div class="trip-highlights">
+            <p>Highlights</p>
+            <ul>
+              <li>Cherry blossom picnic in Ueno Park</li>
+              <li>Tea ceremony in a historic Kyoto temple</li>
+              <li>Day trip to Mount Fuji</li>
+              <li>Nishiki Market food tour</li>
+            </ul>
+          </div>
+          <div class="trip-footer">
+            <span class="trip-slots">Only 3 spots left</span>
+            <button class="btn-book">Book Now</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="trip-card">
+        <div class="trip-header">
+          <div>
+            <span class="trip-type">Adventure</span>
+            <div class="trip-title">Patagonia Trek &amp; Glacier</div>
+          </div>
+          <div class="trip-price">$3,450<small>per person</small></div>
+        </div>
+        <hr class="trip-divider" />
+        <div class="trip-body">
+          <div class="trip-info">
+            <div class="trip-info-item"><strong>10 Days</strong>Duration</div>
+            <div class="trip-info-item"><strong>Nov–Mar</strong>Best Season</div>
+            <div class="trip-info-item"><strong>El Calafate</strong>Route</div>
+            <div class="trip-info-item"><strong>8 people</strong>Max Group</div>
+          </div>
+          <div class="trip-highlights">
+            <p>Highlights</p>
+            <ul>
+              <li>Perito Moreno glacier hike</li>
+              <li>Torres del Paine W-circuit</li>
+              <li>Lago Nordenskjöld kayaking</li>
+              <li>Condor sighting at Mirador</li>
+            </ul>
+          </div>
+          <div class="trip-footer">
+            <span class="trip-slots">5 spots available</span>
+            <button class="btn-book">Book Now</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="trip-card">
+        <div class="trip-header">
+          <div>
+            <span class="trip-type">Luxury</span>
+            <div class="trip-title">Greek Islands Sailing</div>
+          </div>
+          <div class="trip-price">$4,200<small>per person</small></div>
+        </div>
+        <hr class="trip-divider" />
+        <div class="trip-body">
+          <div class="trip-info">
+            <div class="trip-info-item"><strong>8 Days</strong>Duration</div>
+            <div class="trip-info-item"><strong>Jun–Sep</strong>Best Season</div>
+            <div class="trip-info-item"><strong>Athens → Mykonos</strong>Route</div>
+            <div class="trip-info-item"><strong>6 people</strong>Max Group</div>
+          </div>
+          <div class="trip-highlights">
+            <p>Highlights</p>
+            <ul>
+              <li>Private catamaran charter</li>
+              <li>Sunset dinner in Oia, Santorini</li>
+              <li>Snorkeling in hidden coves</li>
+              <li>Delos archaeological day</li>
+            </ul>
+          </div>
+          <div class="trip-footer">
+            <span class="trip-slots">2 cabins remaining</span>
+            <button class="btn-book">Book Now</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+
+<section>
+  <div class="section-inner">
+    <div class="section-header">
+      <span class="section-label">Simple Process</span>
+      <h2>How JourneyOS Works</h2>
+      <p>From inspiration to boarding pass — we make planning effortless.</p>
+    </div>
+    <div class="steps-grid">
+      <div class="step">
+        <div class="step-num">1</div>
+        <h3>Discover</h3>
+        <p>Browse our curated destinations and itineraries filtered to your interests, budget, and travel style.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <h3>Customize</h3>
+        <p>Adjust days, accommodation, and add-ons. Our trip experts are on hand to fine-tune every detail.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <h3>Book Securely</h3>
+        <p>Confirm with a small deposit. Full payment flexibility with transparent pricing — no hidden fees.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <h3>Travel</h3>
+        <p>Your digital trip guide, local contacts, and 24/7 support team are ready before and during your journey.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<section class="testimonials-section">
+  <div class="section-inner">
+    <div class="section-header">
+      <span class="section-label">Traveler Reviews</span>
+      <h2>What Our Travelers Say</h2>
+      <p>Real stories from the people who have explored the world with JourneyOS.</p>
+    </div>
+    <div class="testimonials-grid">
+
+      <div class="testimonial-card">
+        <div class="testimonial-stars">★★★★★</div>
+        <p class="testimonial-quote">"The Japan trip exceeded every expectation. The itinerary had the perfect balance of guided experiences and free time. Our local guide was extraordinary — she knew hidden spots no guidebook mentions."</p>
+        <div class="testimonial-author">
+          <div class="author-avatar avatar-blue">SA</div>
+          <div>
+            <div class="author-name">Sarah A.</div>
+            <div class="author-trip">Japan in Full Bloom, 2024</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="testimonial-card">
+        <div class="testimonial-stars">★★★★★</div>
+        <p class="testimonial-quote">"Patagonia was the most physically demanding and spiritually rewarding trip of my life. The JourneyOS team handled every logistic perfectly so I could focus entirely on the experience."</p>
+        <div class="testimonial-author">
+          <div class="author-avatar avatar-teal">MK</div>
+          <div>
+            <div class="author-name">Marcus K.</div>
+            <div class="author-trip">Patagonia Trek, 2024</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="testimonial-card">
+        <div class="testimonial-stars">★★★★★</div>
+        <p class="testimonial-quote">"I booked the Greek sailing trip as a surprise honeymoon. My wife still calls it the best week of our lives. Oia at sunset from the deck of our catamaran was pure magic."</p>
+        <div class="testimonial-author">
+          <div class="author-avatar avatar-purple">JL</div>
+          <div>
+            <div class="author-name">James L.</div>
+            <div class="author-trip">Greek Islands Sailing, 2023</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="testimonial-card">
+        <div class="testimonial-stars">★★★★★</div>
+        <p class="testimonial-quote">"As a solo traveler, I was nervous about group tours. JourneyOS curated a group of like-minded people and the friendships I made in Marrakech are ones I'll have for life."</p>
+        <div class="testimonial-author">
+          <div class="author-avatar avatar-amber">PR</div>
+          <div>
+            <div class="author-name">Priya R.</div>
+            <div class="author-trip">Marrakech Medina Explorer, 2024</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+
+<section class="newsletter-section">
+  <div class="section-inner">
+    <h2>Get Inspired Every Week</h2>
+    <p>Join 80,000+ travelers who receive our curated destination guides, exclusive deals, and travel tips.</p>
+    <div class="newsletter-form">
+      <input type="email" />
+      <button>Subscribe Free</button>
+    </div>
+  </div>
+</section>
+
+
+<footer>
+  <div class="footer-inner">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <span class="logo">Journey<span>OS</span></span>
+        <p>Crafting unforgettable travel experiences for curious explorers since 2018. Your adventure starts here.</p>
+      </div>
+      <div class="footer-col">
+        <h4>Explore</h4>
+        <ul>
+          <li><a href="#">Destinations</a></li>
+          <li><a href="#">Group Tours</a></li>
+          <li><a href="#">Adventure Trips</a></li>
+          <li><a href="#">Luxury Escapes</a></li>
+          <li><a href="#">Solo Travel</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Company</h4>
+        <ul>
+          <li><a href="#">About Us</a></li>
+          <li><a href="#">Our Guides</a></li>
+          <li><a href="#">Sustainability</a></li>
+          <li><a href="#">Careers</a></li>
+          <li><a href="#">Press</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Support</h4>
+        <ul>
+          <li><a href="#">Help Center</a></li>
+          <li><a href="#">Booking FAQs</a></li>
+          <li><a href="#">Cancellations</a></li>
+          <li><a href="#">Travel Insurance</a></li>
+          <li><a href="#">Contact Us</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2025 JourneyOS. All rights reserved.</span>
+      <div style="display:flex;gap:20px">
+        <a href="#">Privacy Policy</a>
+        <a href="#">Terms of Service</a>
+        <a href="#">Cookie Settings</a>
+      </div>
+    </div>
+  </div>
+  <p class="made-with">Made with IBM Bob</p>
+</footer>
+
+</body>
+</html>

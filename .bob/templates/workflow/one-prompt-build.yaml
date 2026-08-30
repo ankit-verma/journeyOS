@@ -1,0 +1,30 @@
+name: one-prompt-build
+version: "1.0"
+execution:
+  strategy: dependency_aware
+  max_parallel_tasks: auto
+  require_runtime_evidence_for_concurrency: true
+  retry_failed_tasks: true
+  max_retries: 2
+waves:
+  - id: discovery
+    parallel: true
+    tasks: [requirements, technology, architecture, compliance, research]
+  - id: foundation
+    parallel: true
+    depends_on: [discovery]
+    tasks: [data, backend, frontend, security-design]
+  - id: integration
+    parallel: true
+    depends_on: [foundation]
+    tasks: [api-integration, ui-integration, analytics, notifications]
+  - id: verification
+    parallel: true
+    depends_on: [integration]
+    tasks: [unit-tests, integration-tests, e2e-tests, security-verification, accessibility]
+  - id: delivery
+    parallel: false
+    depends_on: [verification]
+    tasks: [ci, deploy, smoke-test]
+completion:
+  required_evidence: [build_passed, relevant_tests_passed, security_checked, deployment_verified, public_endpoint_smoke_tested]

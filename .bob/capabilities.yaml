@@ -1,0 +1,117 @@
+# SmartBob Universal Capability Registry
+# Capability selection is based on the task and discovered project context.
+
+capabilities:
+  discovery:
+    agents: [smartbob/context-discovery, ops/technology-analyst]
+    skills: [engineering/discover-context, universal/context-management]
+
+  requirements:
+    agents: [ops/requirements-analyst]
+    skills: [engineering/requirements]
+
+  architecture:
+    agents: [ops/architect]
+    skills: [engineering/architecture]
+
+  application-development:
+    agents: [ops/frontend-developer, ops/backend-developer]
+    skills: [engineering/implement, engineering/api-contract]
+
+  interfaces-and-integrations:
+    agents: [ops/integration-engineer]
+    skills: [engineering/api-contract, engineering/integration]
+
+  data:
+    agents: [ops/data-engineer, data/bobdata]
+    skills: [engineering/data-migration]
+
+  quality:
+    agents: [ops/test-engineer, ops/code-reviewer]
+    skills: [engineering/verify]
+
+  security:
+    agents: [ops/security-engineer, compliance/security]
+    skills: [compliance/security-assessment, engineering/security-scan]
+
+  reliability:
+    agents: [ops/performance-engineer, ops/platform-engineer]
+    skills: [engineering/performance, engineering/monitoring, engineering/incident-response]
+
+  delivery:
+    agents: [ops/devops-engineer, ops/release-engineer]
+    skills: [engineering/ci-pipeline, engineering/deploy, engineering/release]
+
+  accessibility-and-content:
+    agents: [ops/accessibility-engineer, ops/copywriter, ops/seo-analyst]
+    skills: [engineering/accessibility, engineering/copywriting, engineering/seo]
+
+  governance:
+    agents: [compliance/bobcompliance, compliance/privacy, compliance/security,
+             compliance/regulatory, compliance/accessibility, compliance/cookie,
+             compliance/legal, compliance/license, compliance/data-governance]
+    skills: [compliance/compliance-matrix, compliance/privacy-assessment,
+             compliance/security-assessment, compliance/regulatory-assessment,
+             compliance/cookie-assessment, compliance/license-assessment]
+    # Intent triggers: "compliant", "compliance", "privacy", "GDPR", "legal", "security audit", "accessible", "cookie"
+
+  business:
+    agents: [ceo/bobceo, sales/bobsales, finance/bobfinance, data/bobdata]
+    skills: [business/executive-brief, business/investor-pitch, sales/growth-analysis]
+    # Intent triggers: "as a CEO", "executive brief", "board", "investor", "strategy", "tell me about this"
+
+  knowledge:
+    agents: [kt/bobkt]
+    skills: [knowledge/onboarding, knowledge/architecture-explainer, knowledge/runbook]
+
+  transformation:
+    agents: [migrate/bobmigrate]
+    skills: [engineering/data-migration, engineering/modernization]
+
+  autonomous-orchestration:
+    agents: [smartbob/smartbob, smartbob/autonomous-build, smartbob/discovery-planner]
+    skills: [universal/task-decomposition, universal/context-management]
+
+  product-discovery:
+    agents: [ops/requirements-analyst, ceo/bobceo, research/bobresearch]
+    skills: [engineering/requirements, universal/research, universal/decision-record]
+
+  project-initialization:
+    agents: [ops/architect, ops/technology-analyst, ops/platform-engineer]
+    skills: [engineering/explore, engineering/architecture, engineering/infrastructure-as-code]
+
+  incident-and-recovery:
+    agents: [ops/test-engineer, ops/security-engineer, ops/performance-engineer, ops/platform-engineer]
+    skills: [engineering/incident-response, engineering/verify, engineering/monitoring]
+
+  evidence-and-reporting:
+    agents: [smartbob/smartbob, ceo/bobceo, kt/bobkt]
+    skills: [universal/report, universal/summarize, knowledge/runbook]
+
+  payments-and-revenue:
+    agents: [sales/payments, ops/backend-developer, ops/integration-engineer]
+    skills: [engineering/implement]
+    # Intent triggers: "payment", "stripe", "checkout", "deposit", "refund", "invoice"
+
+  conversion-optimisation:
+    agents: [sales/promo-codes, sales/reviews, sales/wishlist,
+             sales/upsells, sales/abandonment-recovery,
+             sales/bobsales, sales/funnel]
+    skills: [engineering/implement, sales/funnel-analysis]
+    # Intent triggers: "promo", "discount", "coupon", "reviews", "wishlist", "add-ons", "upsell", "abandonment"
+
+  retention-and-loyalty:
+    agents: [sales/loyalty, sales/referral-program,
+             sales/email-triggers, sales/user-profile, sales/customer]
+    skills: [engineering/implement, sales/customer-insight]
+    # Intent triggers: "loyalty", "referral", "email automation", "user profile", "re-engagement", "retention"
+
+  growth-analytics:
+    agents: [sales/funnel, data/bobdata, data/analytics, data/experiment]
+    skills: [engineering/implement]
+    # Intent triggers: "funnel", "conversion rate", "analytics", "tracking", "drop-off", "A/B"
+
+  globalisation:
+    agents: [sales/multi-currency, ops/backend-developer, ops/frontend-developer]
+    skills: [engineering/implement]
+    # Intent triggers: "currency", "multi-currency", "international", "localisation", "exchange rate"

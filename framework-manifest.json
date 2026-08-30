@@ -1,0 +1,28 @@
+{
+  "name": "SmartBob Framework",
+  "version": "1.0.0-universal",
+  "default_mode": "SmartBob",
+  "modes": [
+    "SmartBob",
+    "BobCEO",
+    "BobCompliance",
+    "BobOps",
+    "BobSales",
+    "BobKT",
+    "BobResearch",
+    "BobFinance",
+    "BobData",
+    "BobMigrate"
+  ],
+  "architecture": "Mode -> Agent -> Skill -> Tool -> Sensor -> Feedback",
+  "design": "capability-based, domain-neutral, technology-discovery-first",
+  "principles": [
+    "runtime context discovery",
+    "capability-based delegation",
+    "parallel tasks",
+    "explore-plan-execute-verify",
+    "guides-vs-sensors",
+    "safe approvals",
+    "context discipline"
+  ]
+}
