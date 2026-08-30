@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JourneyOS Admin &mdash; Login</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --accent: #2563eb; --accent-dark: #1d4ed8;
+    --red: #dc2626; --border: #e5e7eb; --muted: #6b7280;
+    --font: -apple-system, "Segoe UI", system-ui, sans-serif;
+  }
+  body { font-family: var(--font); background: #111827; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 16px; }
+  .card { background: #fff; border-radius: 14px; padding: 40px 36px; width: 100%; max-width: 400px; box-shadow: 0 20px 60px rgba(0,0,0,.4); }
+  .logo { font-size: 1.4rem; font-weight: 800; color: var(--accent); text-align: center; margin-bottom: 4px; }
+  .logo span { color: #0d9488; }
+  .subtitle { text-align: center; font-size: 13px; color: var(--muted); margin-bottom: 28px; }
+  .form-group { margin-bottom: 16px; }
+  .form-group label { display: block; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; color: var(--muted); margin-bottom: 5px; }
+  .form-group input { width: 100%; padding: 11px 14px; border: 1.5px solid var(--border); border-radius: 8px; font-size: 14px; font-family: var(--font); outline: none; }
+  .form-group input:focus { border-color: var(--accent); }
+  .btn-login { width: 100%; background: var(--accent); color: #fff; border: none; border-radius: 8px; padding: 12px; font-size: 15px; font-weight: 700; cursor: pointer; margin-top: 4px; }
+  .btn-login:hover { background: var(--accent-dark); }
+  .btn-login:disabled { background: #93c5fd; cursor: not-allowed; }
+  .error-msg { background: #fee2e2; color: var(--red); border: 1px solid #fca5a5; border-radius: 8px; padding: 10px 14px; font-size: 13px; margin-bottom: 14px; display: none; }
+  .back-link { text-align: center; margin-top: 20px; font-size: 13px; }
+  .back-link a { color: var(--accent); text-decoration: none; }
+  .divider { text-align: center; color: var(--muted); font-size: 12px; margin: 16px 0; }
+  .info-box { background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 10px 14px; font-size: 12px; color: #1e40af; margin-bottom: 20px; }
+  .info-box strong { display: block; margin-bottom: 2px; }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="logo">Journey<span>OS</span></div>
+  <div class="subtitle">Admin Dashboard Login</div>
+
+  <div class="error-msg" id="err"></div>
+
+  <form id="login-form">
+    <div class="form-group">
+      <label>Email</label>
+      <input type="email" id="email" placeholder="admin@journeyos.com" required>
+    </div>
+    <div class="form-group">
+      <label>Password</label>
+      <input type="password" id="password" placeholder="••••••••" required>
+    </div>
+    <button type="submit" class="btn-login" id="btn">Sign In to Dashboard</button>
+  </form>
+
+  <div class="back-link"><a href="/">&larr; Back to website</a></div>
+</div>
+
+<script>
+document.getElementById('login-form').addEventListener('submit', async e => {
+  e.preventDefault();
+  const btn = document.getElementById('btn');
+  const err = document.getElementById('err');
+  err.style.display = 'none';
+  btn.disabled = true; btn.textContent = 'Signing in…';
+
+  const r = await fetch('/api/auth/login', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email: document.getElementById('email').value, password: document.getElementById('password').value })
+  }).then(r => r.json());
+
+  btn.disabled = false; btn.textContent = 'Sign In to Dashboard';
+
+  if (!r.success) { err.textContent = r.error; err.style.display = 'block'; return; }
+  if (r.data.user.role !== 'admin') { err.textContent = 'Access denied: admin role required.'; err.style.display = 'block'; return; }
+
+  localStorage.setItem('jos_token', r.data.token);
+  localStorage.setItem('jos_user', JSON.stringify(r.data.user));
+  window.location.href = '/admin';
+});
+
+// If already logged in as admin, skip straight to dashboard
+const t = localStorage.getItem('jos_token');
+const u = localStorage.getItem('jos_user');
+if (t && u) {
+  try {
+    const user = JSON.parse(u);
+    if (user.role === 'admin') window.location.href = '/admin';
+  } catch {}
+}
+</script>
+</body>
+</html>
