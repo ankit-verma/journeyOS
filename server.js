@@ -397,9 +397,79 @@ After the JSON, continue with a friendly message inviting them to purchase/book.
   let usedProvider = 'bob'; // will be updated to actual provider if API call succeeds
   const provider = settings.provider || 'bob';
 
+  // Resolve credentials: DB value takes precedence; env var is the fallback.
+  // This makes watsonx work on Render free tier where /tmp DB is wiped on restart.
+  const wxKey     = settings.watsonx_key     || process.env.WATSONX_API_KEY    || '';
+  const wxProject = settings.watsonx_project_id || process.env.WATSONX_PROJECT_ID || '';
+  const wxRegion  = settings.watsonx_region  || process.env.WATSONX_REGION     || 'us-south';
+
   try {
     // ── Provider routing ─────────────────────────────────────────────────────
-    if (provider === 'openai' && settings.openai_key) {
+    if (provider === 'watsonx' && wxKey && wxProject) {
+      // ── watsonx.ai (IBM Granite via IAM token exchange) ───────────────────
+      const https = require('https');
+      const region = wxRegion;
+
+      // Step 1: Exchange IAM API key for a Bearer token
+      const iamToken = await new Promise((resolve, reject) => {
+        const body = `grant_type=urn%3Aibm%3Aparams%3Aoauth%3Agrant-type%3Aapikey&apikey=${encodeURIComponent(wxKey)}`;
+        const opts = {
+          hostname: 'iam.cloud.ibm.com', path: '/identity/token', method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'Content-Length': Buffer.byteLength(body) }
+        };
+        const hreq = https.request(opts, hres => {
+          let data = '';
+          hres.on('data', c => { data += c; });
+          hres.on('end', () => {
+            try {
+              const j = JSON.parse(data);
+              if (!j.access_token) return reject(new Error('IAM token exchange failed: ' + (j.errorMessage || JSON.stringify(j))));
+              resolve(j.access_token);
+            } catch(e) { reject(e); }
+          });
+        });
+        hreq.on('error', reject);
+        hreq.write(body);
+        hreq.end();
+      });
+
+      // Step 2: Call watsonx.ai text generation endpoint
+      const wxModel = 'meta-llama/llama-3-3-70b-instruct';
+      // Build a single prompt string from system + conversation history
+      const historyText = messages.slice(-10).map(m =>
+        m.role === 'user' ? `Human: ${m.content}` : `Assistant: ${m.content}`
+      ).join('\n');
+      const wxPrompt = `${systemPrompt}\n\n${historyText}\nAssistant:`;
+      const payload = JSON.stringify({
+        model_id: wxModel,
+        input: wxPrompt,
+        parameters: { decoding_method: 'greedy', max_new_tokens: 800, min_new_tokens: 10, stop_sequences: ['Human:'] },
+        project_id: wxProject,
+      });
+      aiReply = await new Promise((resolve, reject) => {
+        const opts = {
+          hostname: `${region}.ml.cloud.ibm.com`,
+          path: '/ml/v1/text/generation?version=2023-05-29',
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${iamToken}`, 'Content-Length': Buffer.byteLength(payload) }
+        };
+        const hreq = https.request(opts, hres => {
+          let data = '';
+          hres.on('data', c => { data += c; });
+          hres.on('end', () => {
+            try {
+              const j = JSON.parse(data);
+              if (j.errors || j.error) return reject(new Error((j.errors?.[0]?.message) || j.error || 'watsonx error'));
+              resolve(j.results?.[0]?.generated_text?.trim() || '');
+            } catch(e) { reject(e); }
+          });
+        });
+        hreq.on('error', reject);
+        hreq.write(payload);
+        hreq.end();
+      });
+      usedProvider = 'watsonx';
+    } else if (provider === 'openai' && settings.openai_key) {
       const https = require('https');
       const payload = JSON.stringify({
         model: settings.model || 'gpt-4o-mini',
@@ -873,13 +943,16 @@ app.get('/api/admin/ai/settings', requireAdmin, (req, res) => {
 });
 
 app.put('/api/admin/ai/settings', requireAdmin, (req, res) => {
-  const { provider, openai_key, claude_key, bob_key, model, enabled, retrain_freq, system_prompt } = req.body;
+  const { provider, openai_key, claude_key, bob_key, watsonx_key, watsonx_project_id, watsonx_region, model, enabled, retrain_freq, system_prompt } = req.body;
   db.prepare(`UPDATE ai_settings SET
     provider=COALESCE(?,provider), openai_key=COALESCE(?,openai_key), claude_key=COALESCE(?,claude_key),
-    bob_key=COALESCE(?,bob_key), model=COALESCE(?,model), enabled=COALESCE(?,enabled),
+    bob_key=COALESCE(?,bob_key), watsonx_key=COALESCE(?,watsonx_key),
+    watsonx_project_id=COALESCE(?,watsonx_project_id), watsonx_region=COALESCE(?,watsonx_region),
+    model=COALESCE(?,model), enabled=COALESCE(?,enabled),
     retrain_freq=COALESCE(?,retrain_freq), system_prompt=COALESCE(?,system_prompt),
     updated_at=datetime('now') WHERE id=1`).run(
     provider ?? null, openai_key ?? null, claude_key ?? null, bob_key ?? null,
+    watsonx_key ?? null, watsonx_project_id ?? null, watsonx_region ?? null,
     model ?? null, enabled != null ? (enabled ? 1 : 0) : null,
     retrain_freq ?? null, system_prompt ?? null
   );

@@ -551,6 +551,7 @@
               <select id="ai-provider" style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:13px;font-family:var(--font)">
                 <option value="openai">OpenAI (GPT-4o-mini, GPT-4)</option>
                 <option value="claude">Anthropic Claude (Haiku, Sonnet)</option>
+                <option value="watsonx">IBM watsonx.ai (Granite)</option>
                 <option value="bob">IBM BOB (Built-in Fallback)</option>
               </select>
             </div>
@@ -566,10 +567,31 @@
               <label>IBM BOB API Key (optional)</label>
               <input type="password" id="ai-bob-key" placeholder="IBM Bob API key" style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:13px;font-family:var(--font)">
             </div>
+            <div class="form-group" id="watsonx-fields" style="display:none;flex-direction:column;gap:10px;padding:12px;background:var(--bg);border:1.5px solid #fbcfe8;border-radius:var(--radius-sm)">
+              <div style="font-size:11px;font-weight:700;color:#be185d;margin-bottom:2px">🔑 watsonx.ai Credentials</div>
+              <div>
+                <label style="font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.3px">IBM Cloud IAM API Key</label>
+                <input type="password" id="ai-watsonx-key" placeholder="IBM Cloud IAM API key" style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:13px;font-family:var(--font);margin-top:4px">
+                <small style="font-size:11px;color:var(--muted);margin-top:3px;display:block">Get from <a href="https://cloud.ibm.com/iam/apikeys" target="_blank" style="color:#be185d">cloud.ibm.com/iam/apikeys</a></small>
+              </div>
+              <div>
+                <label style="font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.3px">Project ID</label>
+                <input type="text" id="ai-watsonx-project" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:13px;font-family:var(--font);margin-top:4px">
+                <small style="font-size:11px;color:var(--muted);margin-top:3px;display:block">watsonx.ai console → your project → Manage → Project ID</small>
+              </div>
+              <div>
+                <label style="font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.3px">Region</label>
+                <select id="ai-watsonx-region" style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:13px;font-family:var(--font);margin-top:4px">
+                  <option value="us-south">us-south (Dallas)</option>
+                  <option value="eu-de">eu-de (Frankfurt)</option>
+                  <option value="jp-tok">jp-tok (Tokyo)</option>
+                </select>
+              </div>
+            </div>
             <div class="form-group">
               <label>Model Name</label>
               <input type="text" id="ai-model" placeholder="gpt-4o-mini" style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:13px;font-family:var(--font)">
-              <small style="font-size:11px;color:var(--muted);margin-top:4px;display:block">OpenAI: gpt-4o-mini, gpt-4o, gpt-4 | Claude: claude-3-haiku-20240307</small>
+              <small style="font-size:11px;color:var(--muted);margin-top:4px;display:block">OpenAI: gpt-4o-mini, gpt-4o, gpt-4 | Claude: claude-3-haiku-20240307 | watsonx: meta-llama/llama-3-3-70b-instruct</small>
             </div>
             <div style="display:flex;align-items:center;justify-content:space-between;padding:12px;background:var(--bg);border-radius:var(--radius-sm);border:1px solid var(--border)">
               <div>
@@ -1222,13 +1244,17 @@ async function loadAiChatbot() {
 
   if (settingsRes.success) {
     const s = settingsRes.data;
-    document.getElementById('ai-provider').value      = s.provider || 'openai';
-    document.getElementById('ai-openai-key').value    = s.openai_key || '';
-    document.getElementById('ai-claude-key').value    = s.claude_key || '';
-    document.getElementById('ai-bob-key').value       = s.bob_key || '';
-    document.getElementById('ai-model').value         = s.model || 'gpt-4o-mini';
-    document.getElementById('ai-retrain-freq').value  = s.retrain_freq || 'daily';
-    document.getElementById('ai-system-prompt').value = s.system_prompt || '';
+    document.getElementById('ai-provider').value          = s.provider || 'openai';
+    document.getElementById('ai-openai-key').value        = s.openai_key || '';
+    document.getElementById('ai-claude-key').value        = s.claude_key || '';
+    document.getElementById('ai-bob-key').value           = s.bob_key || '';
+    document.getElementById('ai-watsonx-key').value       = s.watsonx_key || '';
+    document.getElementById('ai-watsonx-project').value   = s.watsonx_project_id || '';
+    document.getElementById('ai-watsonx-region').value    = s.watsonx_region || 'us-south';
+    document.getElementById('ai-model').value              = s.model || 'gpt-4o-mini';
+    document.getElementById('ai-retrain-freq').value       = s.retrain_freq || 'daily';
+    document.getElementById('ai-system-prompt').value      = s.system_prompt || '';
+    toggleWatsonxFields(s.provider || 'openai');
 
     const enabled = !!s.enabled;
     const cb = document.getElementById('ai-enabled');
@@ -1346,6 +1372,15 @@ function renderKnowledge(items) {
     </tr>`).join('');
 }
 
+// Show / hide watsonx credential block based on selected provider
+function toggleWatsonxFields(provider) {
+  const el = document.getElementById('watsonx-fields');
+  if (el) el.style.display = provider === 'watsonx' ? 'flex' : 'none';
+}
+document.getElementById('ai-provider').addEventListener('change', function() {
+  toggleWatsonxFields(this.value);
+});
+
 // Toggle switch UI
 function updateToggleUI(enabled) {
   const track = document.getElementById('ai-toggle-track');
@@ -1361,14 +1396,17 @@ document.getElementById('ai-enabled').addEventListener('change', function() {
 // Save settings
 document.getElementById('btn-save-ai-settings').addEventListener('click', async () => {
   const payload = {
-    provider:      document.getElementById('ai-provider').value,
-    openai_key:    document.getElementById('ai-openai-key').value.trim(),
-    claude_key:    document.getElementById('ai-claude-key').value.trim(),
-    bob_key:       document.getElementById('ai-bob-key').value.trim(),
-    model:         document.getElementById('ai-model').value.trim(),
-    enabled:       document.getElementById('ai-enabled').checked,
-    retrain_freq:  document.getElementById('ai-retrain-freq').value,
-    system_prompt: document.getElementById('ai-system-prompt').value.trim(),
+    provider:           document.getElementById('ai-provider').value,
+    openai_key:         document.getElementById('ai-openai-key').value.trim(),
+    claude_key:         document.getElementById('ai-claude-key').value.trim(),
+    bob_key:            document.getElementById('ai-bob-key').value.trim(),
+    watsonx_key:        document.getElementById('ai-watsonx-key').value.trim(),
+    watsonx_project_id: document.getElementById('ai-watsonx-project').value.trim(),
+    watsonx_region:     document.getElementById('ai-watsonx-region').value,
+    model:              document.getElementById('ai-model').value.trim(),
+    enabled:            document.getElementById('ai-enabled').checked,
+    retrain_freq:       document.getElementById('ai-retrain-freq').value,
+    system_prompt:      document.getElementById('ai-system-prompt').value.trim(),
   };
   const r = await api('/api/admin/ai/settings', { method:'PUT', body: JSON.stringify(payload) });
   if (!r.success) { toast(r.error || 'Failed to save settings', 'err'); return; }

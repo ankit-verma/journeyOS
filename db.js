@@ -71,17 +71,20 @@ db.exec(`
   );
 
   CREATE TABLE IF NOT EXISTS ai_settings (
-    id              INTEGER PRIMARY KEY CHECK (id = 1),
-    provider        TEXT    NOT NULL DEFAULT 'openai',
-    openai_key      TEXT    NOT NULL DEFAULT '',
-    claude_key      TEXT    NOT NULL DEFAULT '',
-    bob_key         TEXT    NOT NULL DEFAULT '',
-    model           TEXT    NOT NULL DEFAULT 'gpt-4o-mini',
-    enabled         INTEGER NOT NULL DEFAULT 1,
-    retrain_freq    TEXT    NOT NULL DEFAULT 'daily',
-    last_trained    TEXT,
-    system_prompt   TEXT    NOT NULL DEFAULT '',
-    updated_at      TEXT    NOT NULL DEFAULT (datetime('now'))
+    id                  INTEGER PRIMARY KEY CHECK (id = 1),
+    provider            TEXT    NOT NULL DEFAULT 'openai',
+    openai_key          TEXT    NOT NULL DEFAULT '',
+    claude_key          TEXT    NOT NULL DEFAULT '',
+    bob_key             TEXT    NOT NULL DEFAULT '',
+    watsonx_key         TEXT    NOT NULL DEFAULT '',
+    watsonx_project_id  TEXT    NOT NULL DEFAULT '',
+    watsonx_region      TEXT    NOT NULL DEFAULT 'us-south',
+    model               TEXT    NOT NULL DEFAULT 'gpt-4o-mini',
+    enabled             INTEGER NOT NULL DEFAULT 1,
+    retrain_freq        TEXT    NOT NULL DEFAULT 'daily',
+    last_trained        TEXT,
+    system_prompt       TEXT    NOT NULL DEFAULT '',
+    updated_at          TEXT    NOT NULL DEFAULT (datetime('now'))
   );
 
   CREATE TABLE IF NOT EXISTS ai_knowledge (
@@ -113,8 +116,11 @@ db.exec(`
   );
 `);
 
-// Runtime migration — add column to existing table if it does not exist yet
+// Runtime migration — add columns to existing tables if they do not exist yet
 try { db.exec("ALTER TABLE ai_chat_sessions ADD COLUMN tokens_total INTEGER NOT NULL DEFAULT 0"); } catch(_) {}
+try { db.exec("ALTER TABLE ai_settings ADD COLUMN watsonx_key        TEXT NOT NULL DEFAULT ''"); } catch(_) {}
+try { db.exec("ALTER TABLE ai_settings ADD COLUMN watsonx_project_id TEXT NOT NULL DEFAULT ''"); } catch(_) {}
+try { db.exec("ALTER TABLE ai_settings ADD COLUMN watsonx_region     TEXT NOT NULL DEFAULT 'us-south'"); } catch(_) {}
 
 // ── seed if empty ────────────────────────────────────────────────────────────
 const destCount = db.prepare('SELECT COUNT(*) as c FROM destinations').get().c;
@@ -165,20 +171,54 @@ try {
 
 // ── seed AI settings row (singleton id=1) ────────────────────────────────────
 // Default provider is 'bob' — the built-in fallback that always works with no API key.
-// Admin can switch to openai/claude once they add API keys.
+// On Render free tier the DB lives in /tmp and is wiped on every restart.
+// Read credentials from environment variables so they survive restarts.
+const envWatsonxKey     = process.env.WATSONX_API_KEY     || '';
+const envWatsonxProject = process.env.WATSONX_PROJECT_ID  || '';
+const envWatsonxRegion  = process.env.WATSONX_REGION      || 'us-south';
+const envOpenAIKey      = process.env.OPENAI_API_KEY      || '';
+const envClaudeKey      = process.env.ANTHROPIC_API_KEY   || '';
+
+// Resolve which provider to use: prefer env-var-supplied keys, else bob
+function resolveDefaultProvider() {
+  if (envWatsonxKey && envWatsonxProject) return 'watsonx';
+  if (envOpenAIKey)  return 'openai';
+  if (envClaudeKey)  return 'claude';
+  return 'bob';
+}
+
 const aiRow = db.prepare('SELECT id FROM ai_settings WHERE id=1').get();
 if (!aiRow) {
-  db.prepare(`INSERT INTO ai_settings (id,provider,openai_key,claude_key,bob_key,model,enabled,retrain_freq,system_prompt)
-    VALUES (1,'bob','','','','gpt-4o-mini',1,'daily',
+  db.prepare(`INSERT INTO ai_settings (id,provider,openai_key,claude_key,bob_key,watsonx_key,watsonx_project_id,watsonx_region,model,enabled,retrain_freq,system_prompt)
+    VALUES (1,?,?,?,?,?,?,?,'gpt-4o-mini',1,'daily',
     'You are JourneyOS Travel Assistant, an expert travel planner. You help users create personalised travel plans with dynamic pricing. You know all the destinations, trips, and offerings of JourneyOS. When building a travel plan, ask about destination, duration, budget, travel style (adventure/luxury/wellness/cultural), number of travelers, and preferred travel date. Once you have enough info, generate a structured travel plan with an itemised price breakdown. Always be helpful, enthusiastic and concise.')`
-  ).run();
+  ).run(resolveDefaultProvider(), envOpenAIKey, envClaudeKey, '', envWatsonxKey, envWatsonxProject, envWatsonxRegion);
 } else {
-  // Migration: if provider is openai/claude but no key is set, switch to bob so chatbot works out-of-the-box.
-  // This fixes existing deployments that were seeded with provider='openai' before this change.
-  const s = db.prepare('SELECT provider, openai_key, claude_key FROM ai_settings WHERE id=1').get();
-  if ((s.provider === 'openai' && !s.openai_key) || (s.provider === 'claude' && !s.claude_key)) {
-    db.prepare("UPDATE ai_settings SET provider='bob', enabled=1 WHERE id=1").run();
-    console.log('[db] Migrated ai_settings provider to bob (no API key configured)');
+  // Always sync env-var credentials back into the DB row on startup.
+  // This ensures that on Render free tier (ephemeral /tmp DB) credentials
+  // are re-applied after every restart without needing a persistent disk.
+  const updates = [];
+  const params  = [];
+  if (envWatsonxKey)     { updates.push('watsonx_key=?');        params.push(envWatsonxKey); }
+  if (envWatsonxProject) { updates.push('watsonx_project_id=?'); params.push(envWatsonxProject); }
+  if (envWatsonxRegion)  { updates.push('watsonx_region=?');     params.push(envWatsonxRegion); }
+  if (envOpenAIKey)      { updates.push('openai_key=?');         params.push(envOpenAIKey); }
+  if (envClaudeKey)      { updates.push('claude_key=?');         params.push(envClaudeKey); }
+  if (updates.length) {
+    db.prepare(`UPDATE ai_settings SET ${updates.join(',')} WHERE id=1`).run(...params);
+  }
+
+  // If the stored provider's key is now missing (e.g. env var removed, /tmp wiped),
+  // promote the best available provider so the chatbot always works.
+  const s = db.prepare('SELECT provider, openai_key, claude_key, watsonx_key, watsonx_project_id FROM ai_settings WHERE id=1').get();
+  const providerBroken =
+    (s.provider === 'openai'  && !s.openai_key) ||
+    (s.provider === 'claude'  && !s.claude_key) ||
+    (s.provider === 'watsonx' && (!s.watsonx_key || !s.watsonx_project_id));
+  if (providerBroken) {
+    const best = resolveDefaultProvider();
+    db.prepare("UPDATE ai_settings SET provider=?, enabled=1 WHERE id=1").run(best);
+    console.log(`[db] Provider reset to '${best}' (stored provider had no key)`);
   }
 }
 
